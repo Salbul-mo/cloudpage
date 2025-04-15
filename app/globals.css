@@ -1,0 +1,36 @@
+@import 'tailwindcss';
+
+@theme {
+
+    --color-tokyo_night-900: oklch(0.26 0.0344 274.16);
+    --color-tokyo_night-800: oklch(0.28 0.0355 274.75);
+    --color-tokyo_night-700: oklch(0.31 0.0369 273.23);
+    --color-tokyo_night-600: oklch(0.39 0.0537 273.88);
+    --color-tokyo_night-500: oklch(0.41 0.0546 274.27);
+    --color-tokyo_night-400: oklch(0.48 0.0558 273.91);
+    --color-tokyo_night-300: oklch(0.5 0.0682 274.37);
+    --color-tokyo_night-200: oklch(0.59 0.0618 276.63);
+    --color-tokyo_night-100: oklch(0.77 0.0537 275.49);
+    --color-tokyo_night-50: oklch(0.85 0.0611 274.76);
+
+    --color-tokyo_deepblue-500: oklch(0.41 0.0664 263.91);
+    --color-tokyoblue-500: oklch(0.48 0.1207 266.01);
+    --color-tokyo_skyblue-500: oklch(0.72 0.1322 264.2);
+    --color-tokyo_lightblue-500: oklch(0.82 0.1051 235.72);
+    --color-tokyo_lightgreen-500: oklch(0.94 0.0684 194.91);
+    --color-tokyo_lightpurple-500: oklch(0.75 0.1344 299.5);
+    --color-tokyo_purple-500: oklch(0.66 0.1367 299.14);
+    --color-tokyo_orange-500: oklch(0.79 0.1373 50.56);
+    --color-tokyo_yellow-500: oklch(0.86 0.1168 75.04);
+    --color-tokyo_green-500: oklch(0.88 0.1236 126.81);
+    --color-tokyo_jade-500: oklch(0.8 0.1218 179.01);
+    --color-tokyo_deepjade-500: oklch(0.67 0.0944 208.79);
+    --color-tokyo_red-500: oklch(0.73 0.1683 17.8);
+    --color-tokyo_crimsom-500: oklch(0.56 0.1738 14.87);
+    --color-tokyo_pink-500: oklch(0.64 0.2593 3.72);
+
+
+
+
+
+}
