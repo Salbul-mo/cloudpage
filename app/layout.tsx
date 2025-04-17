@@ -1,11 +1,13 @@
+import './globals.css'
+
 export default function RootLayout({
-  children,
+    children,
 }: {
-  children: React.ReactNode;
+    children: React.ReactNode;
 }) {
-  return (
-    <html lang="en">
-      <body>{children}</body>
-    </html>
-  );
+    return (
+        <html lang="en" className="bg-tokyo_night-800">
+            <body>{children}</body>
+        </html>
+    );
 }

@@ -1,5 +1,40 @@
 @import 'tailwindcss';
 
+
+@layer base {
+    * {
+        box-sizing: border-box;
+    }
+}
+
+@layer components {
+
+    .square {
+        @apply border border-solid h-[100px] w-[100px] p-0 mr-[-1px] mt-[-1px] text-center text-2xl float-left border-tokyo_green-500 text-tokyo_pink-500
+    }
+
+
+    .game {
+        @apply mx-auto flex flex-col text-tokyo_red-500
+    }
+
+    ;
+
+    .game-board {
+        @apply flex justify-center flex-col
+    }
+
+    .board-row:after {
+        clear: both;
+        content: '';
+        display: table;
+    }
+
+
+
+}
+
+
 @theme {
 
     --color-tokyo_night-900: oklch(0.26 0.0344 274.16);
@@ -28,9 +63,4 @@
     --color-tokyo_red-500: oklch(0.73 0.1683 17.8);
     --color-tokyo_crimsom-500: oklch(0.56 0.1738 14.87);
     --color-tokyo_pink-500: oklch(0.64 0.2593 3.72);
-
-
-
-
-
 }
