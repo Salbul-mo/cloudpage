@@ -40,6 +40,11 @@ const Home = () => {
                     <p className="text-tokyo_orange-500 text-2xl">
                         <Link className="text-xl" href="/tic-tac-toe">틱-택-토 (Tic-Tac-Toe) Play</Link>
                     </p>
+
+                    <p className="text-tokyo_orange-500 text-2xl">
+                        <Link className="text-xl" href="/sudoku">스도쿠(Sudoku) Play</Link>
+                    </p>
+
                 </div>
                 <div className="my-3">
                     <p className="text-tokyo_orange-500 text-2xl">

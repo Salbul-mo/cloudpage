@@ -24,12 +24,21 @@
         @apply flex justify-center flex-col
     }
 
-    .board-row:after {
+    .board-row::after {
         clear: both;
         content: '';
         display: table;
     }
 
+    .boxSet {
+        @apply grid grid-cols-3 gap-0;
+    }
+
+    .sudokuBox {
+        @apply border h-[80px] w-[80px] border-tokyo_orange-500 p-0 mr-[-1px] mt-[-1px] text-3xl text-center hover:bg-tokyo_night-300;
+        line-height: 75px;
+
+    }
 
 
 }
