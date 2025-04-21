@@ -16,7 +16,7 @@ function Box({ value, className, onBoxClick }) {
 }
 
 // 3 X 3 스도쿠 박스를 반환한다.
-export function SudokuBox({ row, col }: { row: number, col: number }) {
+function SudokuBox({ row, col }: { row: number, col: number }) {
 
     const set1 = numberGenerator()
 
