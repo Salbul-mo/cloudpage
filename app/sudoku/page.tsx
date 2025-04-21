@@ -5,7 +5,7 @@ import Link from "next/link"
 import { numberGenerator } from '../../components/sudoku/function/numberGen'
 
 // 버튼 태그에 클릭 핸들러와 숫자 값, 숫자의 위치를 삽입한다.
-function Box({ value, className, onBoxClick }) {
+function Box({ value, className, onBoxClick }: { value: number, className: string, onBoxClick: any }) {
 
     return (<button className={className} onClick={onBoxClick}>
         {value}
@@ -22,6 +22,7 @@ function SudokuBox({ row, col }: { row: number, col: number }) {
 
     function handleClick(arr: number[]) {
         // arr => row, col, index
+        return
     }
 
 
