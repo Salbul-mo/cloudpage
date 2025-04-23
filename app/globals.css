@@ -40,6 +40,10 @@
 
     }
 
+    .clickedBox {
+        @apply bg-tokyo_night-300
+    }
+
 
 }
 
