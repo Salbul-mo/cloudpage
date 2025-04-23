@@ -29,7 +29,7 @@ function BoxSet({ numSet, row, col, onBoxClick }: { numSet: number[], row: numbe
                 groupRow-${row - 1 !== 2 ? 3 * (row - 1) + Math.floor(index / 3) + 1 : 2 * row + Math.floor(index / 3) + 1}
                 groupCol-${col - 1 !== 2 ? 3 * (col - 1) + index % 3 + 1 : 2 * col + index % 3 + 1}
                 `}
-                        onBoxClick={(e) => onBoxClick(e)}
+                        onBoxClick={(e: Event) => onBoxClick(e)}
                     />
 
                 )
@@ -46,9 +46,12 @@ function BoxSet({ numSet, row, col, onBoxClick }: { numSet: number[], row: numbe
 function Board({ isActive, numSet, onPlay }: { isActive: any[], numSet: any[], onPlay: any }) {
 
     // 파라미터로 박스의 위치(box, row, col) 및 숫자
-    function handleClick(e) {
+    function handleClick(e: Event) {
         // 박스 클릭 시 행동
-        console.log(e.target.innerHTML)
+        const target = e.target as HTMLElement
+        if (target && 'innerHTML' in target) {
+            console.log(target.innerHTML)
+        }
         // Game 컴포넌트에게 전달 받은 onPlay 함수 작동
         onPlay()
 
