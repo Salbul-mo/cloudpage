@@ -1,0 +1,104 @@
+                // j / 3 로 행
+                // j % 3 로 열
+                // 숫자 배열을 비교하고 수정해야하는데
+                // 어떻게 적용해야할까?
+                // 012
+                // 345
+                // 678
+                // 0 -> 0 1 2 3 6 -3=6
+                // 1 -> 0 1 2 4 7 -2=7
+                // 2 -> 0 1 2 5 8 -1=8
+                // 3 -> 3 4 5 0 6
+                // 4 -> 3 4 5 1 7
+                // 5 -> 3 4 5 2 8
+                // 6 -> 6 7 8 0 3 9=0
+                // 7 -> 6 7 8 1 4 10=1
+                // 8 -> 6 7 8 2 5 11=2
+                // 1 행
+            //     const x = j
+            //     if (x < 3) {
+            //         // 1 행에서 비교할 이전 박스의 인덱스
+            //         const idx = [0, 1, 2, Number(x + 3), Number(x - 3 + 9)]
+            //         let rule: number[] = Array(0).fill(null)
+            //
+            //         // 이전 숫자 박스를 순회하면서 숫자를 가져온다.
+            //         previousBox.forEach((item) => {
+            //             idx.forEach((idx) => {
+            //                 console.log("인덱스 번호:" + idx)
+            //                 rule.push(item[idx])
+            //             })
+            //         })
+            //
+            //         console.log("비교할 숫자들")
+            //         console.log(rule)
+            //
+            //         let genNum: number | null = null
+            //
+            //         while (genNum == null) {
+            //             genNum = Math.floor(Math.random() * 9) + 1
+            //             if (!rule.includes(genNum) && !numSet.includes(genNum)) {
+            //                 console.log("생성된 숫자" + genNum)
+            //                 numSet.push(genNum)
+            //                 break
+            //             } else {
+            //                 genNum = null
+            //             }
+            //         }
+            //
+            //     } else if (x > 2 && x < 6) {
+            //         const idx = [3, 4, 5, Number(x + 3), Number(x - 3)]
+            //
+            //         let rule: number[] = Array(0).fill(null)
+            //         // 이전 숫자 박스를 순회하면서 숫자를 가져온다.
+            //         previousBox.forEach((item) => {
+            //             idx.forEach((idx) => {
+            //                 console.log("인덱스 번호:" + idx)
+            //                 rule.push(item[idx])
+            //             })
+            //         })
+            //
+            //         console.log("비교할 숫자들")
+            //         console.log(rule)
+            //         let genNum: number | null = null
+            //
+            //         while (genNum == null) {
+            //             genNum = Math.floor(Math.random() * 9) + 1
+            //             if (!rule.includes(genNum) && !numSet.includes(genNum)) {
+            //                 console.log("생성된 숫자" + genNum)
+            //                 numSet.push(genNum)
+            //                 break
+            //             } else {
+            //                 genNum = null
+            //             }
+            //
+            //         }
+            //
+            //     } else {
+            //         const idx = [6, 7, 8, Number(x + 3 - 9), Number(x - 3)]
+            //
+            //         let rule: number[] = Array(0).fill(null)
+            //         // 이전 숫자 박스를 순회하면서 숫자를 가져온다.
+            //         previousBox.forEach((item) => {
+            //             idx.forEach((idx) => {
+            //                 console.log("인덱스 번호:" + idx)
+            //                 rule.push(item[idx])
+            //             })
+            //         })
+            //
+            //         console.log("비교할 숫자들")
+            //         console.log(rule)
+            //
+            //         let genNum: number | null = null
+            //         while (genNum == null) {
+            //             genNum = Math.floor(Math.random() * 9) + 1
+            //             if (!rule.includes(genNum) && !numSet.includes(genNum)) {
+            //                 console.log("생성된 숫자" + genNum)
+            //                 numSet.push(genNum)
+            //                 break
+            //             } else {
+            //                 genNum = null
+            //             }
+            //
+            //         }
+            //     }
+            // }
