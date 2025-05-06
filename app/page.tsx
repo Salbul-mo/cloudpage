@@ -42,7 +42,7 @@ const Home = () => {
                     </p>
 
                     <p className="text-tokyo_orange-500 text-2xl">
-                        <Link className="text-xl" href="/sudoku">스도쿠(Sudoku) Play</Link>
+                        <Link className="text-xl" href="/sudokuSolver">스도쿠 풀이(Sudoku Solver) </Link>
                     </p>
 
                 </div>
