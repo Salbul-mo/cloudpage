@@ -31,13 +31,62 @@
     }
 
     .boxSet {
-        @apply grid grid-cols-3 gap-0;
+        @apply grid grid-rows-9 gap-0;
     }
 
     .sudokuBox {
-        @apply border h-[80px] w-[80px] border-tokyo_orange-500 p-0 mr-[-1px] mt-[-1px] text-3xl text-center hover:bg-tokyo_night-300;
+        @apply border h-[80px] w-[80px] border-tokyo_orange-500 p-0 mr-[-1px] mt-[-1px] text-3xl text-center text-tokyo_night-200 hover:bg-tokyo_night-300;
         line-height: 75px;
 
+    }
+
+    .row-0 {
+        @apply border-t-tokyo_night-50 border-t-[3px]
+    }
+
+    .row-8 {
+        @apply border-b-tokyo_night-50 border-b-[3px]
+    }
+
+
+    .col-0 {
+        @apply border-l-tokyo_night-50 border-l-[3px]
+    }
+
+    .col-8 {
+        @apply border-r-tokyo_night-50 border-r-[3px]
+    }
+
+    .row-2 {
+        @apply border-b-tokyo_green-500 border-b-[3px]
+    }
+
+    .row-3 {
+        @apply border-t-tokyo_green-500 border-t-[3px]
+    }
+
+    .row-5 {
+        @apply border-b-tokyo_green-500 border-b-[3px]
+    }
+
+    .row-6 {
+        @apply border-t-tokyo_green-500 border-t-[3px]
+    }
+
+    .col-2 {
+        @apply border-r-tokyo_green-500 border-r-[3px]
+    }
+
+    .col-3 {
+        @apply border-l-tokyo_green-500 border-l-[3px]
+    }
+
+    .col-5 {
+        @apply border-r-tokyo_green-500 border-r-[3px]
+    }
+
+    .col-6 {
+        @apply border-l-tokyo_green-500 border-l-[3px]
     }
 
     .clickedBox {
