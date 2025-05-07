@@ -38,6 +38,13 @@
         @apply border h-[80px] w-[80px] border-tokyo_orange-500 p-0 mr-[-1px] mt-[-1px] text-3xl text-center text-tokyo_night-200 hover:bg-tokyo_night-300;
         line-height: 75px;
 
+        &.active {
+            @apply bg-tokyo_night-400
+        }
+
+        &.clicked {
+            @apply bg-tokyo_green-500
+        }
     }
 
     .row-0 {
@@ -89,9 +96,6 @@
         @apply border-l-tokyo_green-500 border-l-[3px]
     }
 
-    .clickedBox {
-        @apply bg-tokyo_night-300
-    }
 
 
 }
