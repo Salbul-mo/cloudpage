@@ -47,6 +47,10 @@
         }
     }
 
+    .numberPad {
+        @apply border-tokyo_night-100 border-[3px]
+    }
+
     .row-0 {
         @apply border-t-tokyo_night-50 border-t-[3px]
     }

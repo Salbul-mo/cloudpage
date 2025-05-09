@@ -645,6 +645,24 @@ function SudokuBoard({ totalNumber, setTotalNumber, isActive, setActive, onPlay 
     )
 }
 
+function NumberPad() {
+    const arr = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+    return (
+        <div className="container mx-auto">
+            {arr.map((number, index) => {
+                const row = Math.floor(index / 3)
+                const col = index % 3
+                return (
+                    <button className={`sudokuBox row-${row} col-${col}`}>
+                        {number}
+                    </button>
+                )
+            })}
+        </div>
+    )
+}
+
 
 export default function SudokuGame() {
 
@@ -664,19 +682,42 @@ export default function SudokuGame() {
         // 아직 구현되지 않음
         return null
     }
+
+    const todo = `
+해야 할 일
+1. 숫자 가리기
+2. 가려진 숫자 눌러서 드러내기
+3. 해당 조건에서 답이 하나 밖에 없는지
+or 제시된 보드와 같은 답인지 체크
+4. 메모 기능 추가
+5. 스도쿠 해결 검사 추가
+`
     return (
         <div className="container mx-auto flex flex-col items-center">
-            <Link className="text-tokyo_orange-500 text-3xl mb-[10px]" href="/">
-                Home
-            </Link>
-            <div className="boxSet w-[720px] mt-7">
-                <SudokuBoard
-                    isActive={isActive}
-                    setActive={setActive}
-                    totalNumber={totalNumber}
-                    setTotalNumber={setTotalNumber}
-                    onPlay={onPlay}
-                />
+            <div className="w-full mx-auto text-center">
+                <Link className="text-tokyo_orange-500 text-3xl mb-[10px]" href="/">
+                    Home
+                </Link>
+            </div>
+            <div className="grid grid-cols-2">
+                <div className="boxSet w-[720px] h-[800px] mt-7">
+                    <SudokuBoard
+                        isActive={isActive}
+                        setActive={setActive}
+                        totalNumber={totalNumber}
+                        setTotalNumber={setTotalNumber}
+                        onPlay={onPlay}
+                    />
+                </div>
+                <div className="numberPad mx-auto mt-10 w-[244px] h-[244px] ">
+                    <NumberPad />
+
+                    <div className="container mt-5 mx-auto">
+                        <h2 className="text-tokyo_green-500 mt-5 mb-2 text-xl"> 메모 </h2>
+                        <textarea className="w-[300px] h-[500px] bg-tokyo_night-400 text-tokyo_green-500"
+                            rows={2} placeholder={todo} />
+                    </div>
+                </div>
             </div>
         </div>
     )
