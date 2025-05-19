@@ -3,40 +3,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 
-class SearchStack {
-    "items": DL_Node[]
-
-    constructor() {
-        this.items = []
-    }
-
-    push(element: DL_Node) {
-        this.items.push(element)
-    }
-
-    pop() {
-        if (this.isEmpty()) {
-            return 0
-        }
-        this.items.pop()
-    }
-
-    peek() {
-        if (this.isEmpty()) {
-            return 0
-        }
-        return this.items[this.items.length - 1]
-    }
-
-    isEmpty() {
-        return this.items.length === 0
-    }
-
-    size() {
-        return this.items.length
-    }
-
-}
 class DL_Node {
 
     row: number
@@ -279,10 +245,6 @@ class DL_Matrix {
         //console.log(`Starting Algorithm X search`)
         let solutions: number[] = []
 
-        const searchStack = new SearchStack()
-
-        searchStack.push(this.root)
-
         const search = () => {
             //console.log(`Search iteration, current solution length: ${solutions.length}`)
             if (this.isEmpty()) {
@@ -298,13 +260,10 @@ class DL_Matrix {
                 return false
             }
 
-            searchStack.push(selectedCol)
-
             //console.log(`Trying rows in column ${selectedCol.col}`)
             for (const col of selectedCol.itrDown(null)) {
                 //console.log(`Selected row ${col.row}`)
                 solutions.push(col.row)
-                searchStack.push(col)
                 //console.log(`Current solution: [${solutions.join(', ')}]`)
 
                 for (const node of col.itrRight(false)) {
@@ -324,7 +283,6 @@ class DL_Matrix {
                 // 재귀 호출로 해결되지 않았을 때 후보 삭제
                 //console.log(`Backtracking: removing last candidate row ${solutions[solutions.length - 1]}`)
                 solutions.splice(-1, 1)
-                searchStack.pop()
                 //console.log(`Solution after backtrack: [${solutions.join(', ')}]`)
 
                 for (const node of col.left.itrLeft(false)) {
@@ -335,21 +293,14 @@ class DL_Matrix {
                 }
 
             }
-            if (!this.solved) {
-                searchStack.pop()
-            }
             return this.solved
         }
 
         //console.log(`Executing search algorithm`)
         search()
         //console.log(`Search completed, found ${solutions.length} solution elements`)
-        const node = searchStack.peek()
-        if (node != 0) {
-            node as DL_Node
-            console.log("row:" + node.row + " col:" + node.col)
-        }
-        return { "solution": solutions, "searchStack": searchStack }
+
+        return solutions
     }
 
     insertNode(row: number, col: number) {
@@ -470,11 +421,7 @@ function solvePuzzle(puzzle: number[]) {
         //console.log(`Valid puzzle dimensions: ${puzzle.length} cells`)
         const matrix = listToMatrix(puzzle, dim)
         //console.log(`Applying Algorithm X to find solution`)
-        const solution = matrix.alg_x_search()
-
-        const solutionList = solution["solution"]
-        const searchStack = solution["searchStack"]
-
+        const solutionList: number[] = matrix.alg_x_search()
 
         if (solutionList == null || solutionList.length === 0) {
             //console.warn(`No solution found`)
@@ -744,10 +691,6 @@ export default function SudokuGame() {
 or 제시된 보드와 같은 답인지 체크
 4. 메모 기능 추가
 5. 스도쿠 해결 검사 추가
-
-현재 상태
-1. 탐색 중인 노드를 스택 구조로 저장
-2. 해답이 나왔을 때의 노드를 로그로 출력
 `
     return (
         <div className="container mx-auto flex flex-col items-center">

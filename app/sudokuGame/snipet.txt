@@ -1,0 +1,132 @@
+import React, { useState } from 'react';
+// 각 셀의 타입 정의
+type Cell = {
+    value?: number; // 셀의 값
+    notes?: number[]; // 메모
+};
+
+// 스도쿠 판의 타입
+type SudokuBoard = Cell[][];
+const initialBoard: SudokuBoard = Array.from({ length: 9 }, () =>
+    Array.from({ length: 9 }, () => ({}))
+);
+
+const Sudoku: React.FC = () => {
+    const [board, setBoard] = useState<SudokuBoard>(initialBoard);
+    const [selectedCell, setSelectedCell] = useState<{ row: number; col: number } | null>(null);
+    // 셀 클릭 핸들러
+    const handleCellClick = (row: number, col: number) => {
+        setSelectedCell({ row, col });
+        const newValue = prompt("숫자 또는 메모를 입력해주세요:");
+        if (newValue) {
+            const value = parseInt(newValue);
+            setBoard((prevBoard) =>
+                prevBoard.map((r, rIdx) =>
+                    rIdx === row
+                        ? r.map((cell, cIdx) => (cIdx === col ? { value, notes: [] } : cell))
+                        : r
+                )
+            );
+        }
+    };
+    return (
+        <div>
+            <h1>스도쿠 판
+                {board.map((row, rowIdx) =>
+                    row.map((cell, colIdx) => (
+                        <div
+                            key={${rowIdx}- ${ colIdx }}
+                onClick={() => handleCellClick(rowIdx, colIdx)}
+                style={{
+                    width: '50px',
+                    height: '50px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: '1px solid black',
+                    backgroundColor: selectedCell?.row === rowIdx && selectedCell?.col === colIdx ? '#d3d3d3' : '#fff',
+                }}
+>
+                {cell.value || ''}))
+)}
+        </div>
+    );
+
+
+
+
+
+    // 각 셀의 타입 정의
+    type Cell = {
+        value?: number; // 셀의 값
+        notes?: number[]; // 메모
+    };
+    // 스도쿠 판의 타입
+    type SudokuBoard = Cell[][];
+    const initialBoard: SudokuBoard = Array.from({ length: 9 }, () =>
+        Array.from({ length: 9 }, () => ({ notes: [] }))
+    );
+    const Sudoku: React.FC = () => {
+        const [board, setBoard] = useStateudokuBoard > (initialBoard);
+        const [selectedCell, setSelectedCell] = useState<{ row: number; col: number } | null>(null);
+        // 셀 클릭 핸들러
+        const handleCellClick = (row: number, col: number) => {
+            setSelectedCell({ row, col });
+            const valueOrNotes = prompt("숫자 또는 메모를 입력해주세요 (콤마로 구분된 숫자):");
+            if (valueOrNotes) {
+                const parsedNotes = valueOrNotes.split(',').map(str => parseInt(str.trim())).filter(num => !isNaN(num));
+                // 만약 입력이 숫자라면 값을 설정하고, 메모를 비웁니다.
+                if (parsedNotes.length === 1 && parsedNotes[0] >= 1 && parsedNotes[0] <= 9) {
+                    setBoard((prevBoard) =>
+                        prevBoard.map((r, rIdx) =>
+                            rIdx === row
+                                ? r.map((cell, cIdx) => (cIdx === col ? { value: parsedNotes[0], notes: [] } : cell))
+                                : r
+                        )
+                    );
+                } else {
+                    // 메모 업데이트
+                    setBoard((prevBoard) =>
+                        prevBoard.map((r, rIdx) =>
+                            rIdx === row
+                                ? r.map((cell, cIdx) => (cIdx === col ? { ...cell, notes: parsedNotes } : cell))
+                                : r
+                        )
+                    );
+                }
+            }
+        };
+        return (
+            <div>
+                스도쿠 판
+                {board.map((row, rowIdx) =>
+                    row.map((cell, colIdx) => (
+                        <div
+                            key={${rowIdx}- ${ colIdx }}
+                onClick={() => handleCellClick(rowIdx, colIdx)}
+                style={{
+                    width: '50px',
+                    height: '50px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: '1px solid black',
+                    backgroundColor: selectedCell?.row === rowIdx && selectedCell?.col === colIdx ? '#d3d3d3' : '#fff',
+                    position: 'relative',
+                }}
+>
+                {cell.value || ''}
+                {/* 메모 표시 */}
+                {cell.notes && cell.notes.length > 0 && (
+                    <div style={{
+                        position: 'absolute',
+                        bottom: '2px',
+                        right: '2px',
+                        fontSize: '10px',
+                        color: 'grey',
+                    }}>
+                        {cell.notes.join(',')})}))
+)}
+                    </div>
+                )
+            </div>
