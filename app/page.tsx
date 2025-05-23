@@ -48,6 +48,9 @@ const Home = () => {
                         <Link className="text-xl" href="/sudokuGame">스도쿠 게임(Sudoku Game) </Link>
                     </p>
 
+                    <p className="text-tokyo_orange-500 text-2xl">
+                        <Link className="text-xl" href="/sudokuBoard">스도쿠 보드(Sudoku Board) </Link>
+                    </p>
                 </div>
                 <div className="my-3">
                     <p className="text-tokyo_orange-500 text-2xl">
