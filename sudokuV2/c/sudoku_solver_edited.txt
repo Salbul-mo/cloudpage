@@ -1,0 +1,99 @@
+// 첫 번째 해답을 찾아 반환하는 함수
+bool find_first_solution(SudokuBoard* initial_board, SudokuBoard* solution) {
+    Matrix* matrix = create_sudoku_matrix();
+    
+    // 해답 트래커 초기화 (1개의 해답만 찾으면 됨)
+    SolutionTracker tracker;
+    tracker.solutions = malloc(sizeof(SudokuBoard));
+    tracker.count = 0;
+    tracker.max_solutions = 1;
+    
+    // 초기 보드 상태 적용
+    apply_initial_board(matrix, initial_board);
+    
+    // 반복적 탐색으로 첫 번째 해답 검색
+    bool found = alg_x_iterative_search(matrix, solution_callback, &tracker);
+    
+    // 해답이 있으면 복사
+    if (found && tracker.count > 0) {
+        memcpy(solution, &tracker.solutions[0], sizeof(SudokuBoard));
+    }
+    
+    // 메모리 정리
+    delete_matrix(matrix);
+    free(tracker.solutions);
+    
+    return found && tracker.count > 0;
+}
+
+// 스도쿠 퍼즐이 복수의 해답을 가지는지 검사
+bool has_multiple_solutions(SudokuBoard* initial_board) {
+    Matrix* matrix = create_sudoku_matrix();
+    
+    // 해답 트래커 초기화 (최대 2개의 해답만 찾으면 됨)
+    SolutionTracker tracker;
+    tracker.solutions = malloc(sizeof(SudokuBoard) * 2);
+    tracker.count = 0;
+    tracker.max_solutions = 2;
+    
+    // 초기 보드 상태 적용
+    apply_initial_board(matrix, initial_board);
+    
+    // 반복적 탐색으로 최대 2개 해답 검색
+    alg_x_iterative_search(matrix, solution_callback, &tracker);
+    
+    // 메모리 정리
+    delete_matrix(matrix);
+    
+    bool has_multiple = (tracker.count > 1);
+    free(tracker.solutions);
+    
+    return has_multiple;
+}
+
+// 메인 함수 수정 예시
+int main(int argc, char* argv[]) {
+    // 예제 스도쿠 보드 (0은 빈 셀)
+    SudokuBoard board = {
+        .cells = {
+            {5, 3, 0, 0, 7, 0, 0, 0, 0},
+            {6, 0, 0, 1, 9, 5, 0, 0, 0},
+            {0, 9, 8, 0, 0, 0, 0, 6, 0},
+            {8, 0, 0, 0, 6, 0, 0, 0, 3},
+            {4, 0, 0, 8, 0, 3, 0, 0, 1},
+            {7, 0, 0, 0, 2, 0, 0, 0, 6},
+            {0, 6, 0, 0, 0, 0, 2, 8, 0},
+            {0, 0, 0, 4, 1, 9, 0, 0, 5},
+            {0, 0, 0, 0, 8, 0, 0, 7, 9}
+        }
+    };
+    
+    // 명령줄 인수가 제공된 경우 보드 파싱
+    if (argc > 1) {
+        if (!parse_sudoku_board(argv[1], &board)) {
+            printf("Invalid sudoku board format!\n");
+            return 1;
+        }
+    }
+    
+    printf("Input sudoku puzzle:\n");
+    print_sudoku_board(&board);
+    
+    // 첫 번째 해답 찾기
+    SudokuBoard solution;
+    if (find_first_solution(&board, &solution)) {
+        printf("\nFirst solution:\n");
+        print_sudoku_board(&solution);
+        
+        // 복수 해답 검증
+        if (has_multiple_solutions(&board)) {
+            printf("\nThe sudoku puzzle has MULTIPLE solutions!\n");
+        } else {
+            printf("\nThe sudoku puzzle has a UNIQUE solution.\n");
+        }
+    } else {
+        printf("\nThe sudoku puzzle has NO solution.\n");
+    }
+    
+    return 0;
+}

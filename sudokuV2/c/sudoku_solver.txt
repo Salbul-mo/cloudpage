@@ -1,0 +1,314 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
+#include "dlinks_matrix.h"
+
+#define BOARD_SIZE 9
+#define CONSTRAINTS 4
+#define NUM_CELLS (BOARD_SIZE * BOARD_SIZE)
+#define NUM_CONSTRAINTS (CONSTRAINTS * NUM_CELLS)
+#define NUM_POSSIBILITIES (BOARD_SIZE * NUM_CELLS)
+
+// 스도쿠 보드 구조체
+typedef struct {
+    int cells[BOARD_SIZE][BOARD_SIZE];
+} SudokuBoard;
+
+// 해답 목록을 저장할 구조체
+typedef struct {
+    SudokuBoard* solutions;
+    int count;
+    int max_solutions;
+} SolutionTracker;
+
+// DLX 매트릭스에서 행의 의미를 해석하는 함수
+void decode_row(int row, int* digit, int* row_idx, int* col_idx) {
+    int cell = row / BOARD_SIZE;
+    *digit = row % BOARD_SIZE + 1;
+    *row_idx = cell / BOARD_SIZE;
+    *col_idx = cell % BOARD_SIZE;
+}
+
+// 스도쿠 보드를 문자열로 변환하는 함수
+void board_to_string(SudokuBoard* board, char* str) {
+    int idx = 0;
+    for (int i = 0; i < BOARD_SIZE; i++) {
+        for (int j = 0; j < BOARD_SIZE; j++) {
+            str[idx++] = board->cells[i][j] + '0';
+        }
+    }
+    str[idx] = '\0';
+}
+
+// DLX 매트릭스 생성 함수
+Matrix* create_sudoku_matrix() {
+    // 행의 수: 모든 가능한 셀-숫자 조합 (9x9x9 = 729)
+    // 열의 수: 모든 제약 조건 (9x9x4 = 324)
+    //   - 각 셀에 정확히 하나의 숫자 (81개 제약)
+    //   - 각 행에 1-9의 숫자가 정확히 한 번씩 (9x9 = 81개 제약)
+    //   - 각 열에 1-9의 숫자가 정확히 한 번씩 (9x9 = 81개 제약)
+    //   - 각 3x3 블록에 1-9의 숫자가 정확히 한 번씩 (9x9 = 81개 제약)
+    Matrix* matrix = create_matrix(NUM_POSSIBILITIES, NUM_CONSTRAINTS);
+    
+    // 행 구성: 각 행은 "셀 (r,c)에 숫자 d를 배치"를 나타냄
+    for (int r = 0; r < BOARD_SIZE; r++) {
+        for (int c = 0; c < BOARD_SIZE; c++) {
+            for (int d = 1; d <= BOARD_SIZE; d++) {
+                int row = (r * BOARD_SIZE + c) * BOARD_SIZE + (d - 1);
+                
+                // 제약 1: 셀 (r,c)에는 정확히 하나의 숫자가 있어야 함
+                int cell_constraint = r * BOARD_SIZE + c;
+                insert_node(matrix, row, cell_constraint, 1);
+                
+                // 제약 2: 행 r에는 숫자 d가 정확히 한 번 나타나야 함
+                int row_constraint = NUM_CELLS + r * BOARD_SIZE + (d - 1);
+                insert_node(matrix, row, row_constraint, 1);
+                
+                // 제약 3: 열 c에는 숫자 d가 정확히 한 번 나타나야 함
+                int col_constraint = 2 * NUM_CELLS + c * BOARD_SIZE + (d - 1);
+                insert_node(matrix, row, col_constraint, 1);
+                
+                // 제약 4: 3x3 블록에는 숫자 d가 정확히 한 번 나타나야 함
+                int block = (r / 3) * 3 + (c / 3);
+                int block_constraint = 3 * NUM_CELLS + block * BOARD_SIZE + (d - 1);
+                insert_node(matrix, row, block_constraint, 1);
+            }
+        }
+    }
+    
+    return matrix;
+}
+
+// 초기 보드 상태를 기반으로 매트릭스 행 제거
+void apply_initial_board(Matrix* matrix, SudokuBoard* board) {
+    for (int r = 0; r < BOARD_SIZE; r++) {
+        for (int c = 0; c < BOARD_SIZE; c++) {
+            if (board->cells[r][c] != 0) {
+                int d = board->cells[r][c];
+                // 해당 셀의 다른 모든 가능성 제거
+                for (int digit = 1; digit <= BOARD_SIZE; digit++) {
+                    if (digit != d) {
+                        int row = (r * BOARD_SIZE + c) * BOARD_SIZE + (digit - 1);
+                        Node* row_header = matrix->rows[row];
+                        cover(row_header->right);
+                    }
+                }
+                // 선택된 숫자 대한 행 커버
+                int selected_row = (r * BOARD_SIZE + c) * BOARD_SIZE + (d - 1);
+                Node* node = matrix->rows[selected_row]->right;
+                do {
+                    cover(node);
+                    node = node->right;
+                } while (node != matrix->rows[selected_row]);
+            }
+        }
+    }
+}
+
+// 해답을 보드로 변환
+void solution_to_board(solution_stack* solution, SudokuBoard* board) {
+    // 보드 초기화
+    for (int r = 0; r < BOARD_SIZE; r++) {
+        for (int c = 0; c < BOARD_SIZE; c++) {
+            board->cells[r][c] = 0;
+        }
+    }
+
+    // 스택을 배열로 변환
+    int solution_size = solution->count;
+    Node** solution_array = malloc(sizeof(Node*) * solution_size);
+    
+    solution_node* current = solution->head;
+    for (int i = 0; i < solution_size; i++) {
+        solution_array[solution_size - 1 - i] = (Node*)current->data;
+        current = current->next;
+    }
+    
+    // 각 행을 해석하여 보드에 배치
+    for (int i = 0; i < solution_size; i++) {
+        Node* row_header = solution_array[i];
+        int row_idx = row_header->row;
+        
+        int digit, r, c;
+        decode_row(row_idx, &digit, &r, &c);
+        board->cells[r][c] = digit;
+    }
+    
+    free(solution_array);
+}
+
+// 해답 추적을 위한 콜백 함수
+bool solution_callback(Matrix* matrix, void* user_data) {
+    SolutionTracker* tracker = (SolutionTracker*)user_data;
+    
+    // 최대 해답 수를 초과하면 더 이상 검색하지 않음
+    if (tracker->count >= tracker->max_solutions) {
+        return true; // 검색 중지
+    }
+    
+    // 현재 해답을 저장
+    SudokuBoard* new_solution = &tracker->solutions[tracker->count];
+    solution_to_board(matrix->solution, new_solution);
+    tracker->count++;
+    
+    // 아직 더 찾아야 함
+    return false; // 계속 검색
+}
+
+// 수정된 알고리즘 X - 여러 해답을 찾기 위한 버전
+bool alg_x_multi_search(Matrix* matrix, bool (*callback)(Matrix*, void*), void* user_data) {
+    // 행렬이 비어있으면 해답을 찾음
+    if (matrix_is_empty(matrix)) {
+        bool stop_search = callback(matrix, user_data);
+        return stop_search;
+    }
+
+    // 노드가 가장 적은 열 선택
+    Node* selected_col = select_min_column(matrix);
+    if (selected_col->count < 1) {
+        return false; // 이 분기에서 해답을 찾지 못함
+    }
+
+    bool stop_search = false;
+    Node* vert_itr = selected_col->down;
+    Node* horiz_itr;
+    
+    // 선택된 열의 각 행에 대해
+    while (vert_itr != selected_col && !stop_search) {
+        // 선택된 행을 해답 스택에 추가
+        push_stack(matrix->solution, matrix->rows[vert_itr->row]);
+
+        horiz_itr = vert_itr;
+        // 행의 각 열을 커버
+        do {
+            if (horiz_itr->col >= 0) {
+                cover(horiz_itr);
+            }
+        } while ((horiz_itr = horiz_itr->right) != vert_itr);
+
+        // 재귀적으로 검색 계속
+        stop_search = alg_x_multi_search(matrix, callback, user_data);
+
+        // 해답을 찾지 못했거나 더 찾아야 한다면 되돌림
+        if (!stop_search) {
+            pop_stack(matrix->solution);
+            horiz_itr = vert_itr->left;
+            do {
+                if (horiz_itr->col >= 0) {
+                    uncover(horiz_itr);
+                }
+            } while ((horiz_itr = horiz_itr->left) != vert_itr->left);
+        }
+
+        vert_itr = vert_itr->down;
+    }
+    
+    return stop_search;
+}
+
+// 스도쿠 보드 출력 함수
+void print_sudoku_board(SudokuBoard* board) {
+    printf("┌───────┬───────┬───────┐\n");
+    for (int r = 0; r < BOARD_SIZE; r++) {
+        printf("│");
+        for (int c = 0; c < BOARD_SIZE; c++) {
+            printf(" %d", board->cells[r][c]);
+            if ((c + 1) % 3 == 0) printf(" │");
+        }
+        printf("\n");
+        if ((r + 1) % 3 == 0 && r < BOARD_SIZE - 1) {
+            printf("├───────┼───────┼───────┤\n");
+        }
+    }
+    printf("└───────┴───────┴───────┘\n");
+}
+
+// 스도쿠 퍼즐이 복수의 해답을 가지는지 검사
+bool has_multiple_solutions(SudokuBoard* initial_board) {
+    Matrix* matrix = create_sudoku_matrix();
+    
+    // 해답 트래커 초기화 (최대 2개의 해답만 찾으면 됨)
+    SolutionTracker tracker;
+    tracker.solutions = malloc(sizeof(SudokuBoard) * 2);
+    tracker.count = 0;
+    tracker.max_solutions = 2;
+    
+    // 초기 보드 상태 적용
+    apply_initial_board(matrix, initial_board);
+    
+    // 해답 검색 (최대 2개)
+    alg_x_multi_search(matrix, solution_callback, &tracker);
+    
+    // 메모리 정리
+    delete_matrix(matrix);
+    
+    bool has_multiple = (tracker.count > 1);
+    free(tracker.solutions);
+    
+    return has_multiple;
+}
+
+// 스도쿠 보드 파싱 함수
+bool parse_sudoku_board(const char* str, SudokuBoard* board) {
+    int len = strlen(str);
+    if (len < NUM_CELLS) {
+        return false;
+    }
+    
+    int idx = 0;
+    for (int r = 0; r < BOARD_SIZE; r++) {
+        for (int c = 0; c < BOARD_SIZE; c++) {
+            char ch = str[idx++];
+            if (ch >= '0' && ch <= '9') {
+                board->cells[r][c] = ch - '0';
+            } else if (ch == '.' || ch == ' ') {
+                board->cells[r][c] = 0;
+            } else {
+                return false;
+            }
+            
+            if (idx >= len) break;
+        }
+        if (idx >= len) break;
+    }
+    
+    return true;
+}
+
+// 메인 함수
+int main(int argc, char* argv[]) {
+    // 예제 스도쿠 보드 (0은 빈 셀)
+    SudokuBoard board = {
+        .cells = {
+            {5, 3, 0, 0, 7, 0, 0, 0, 0},
+            {6, 0, 0, 1, 9, 5, 0, 0, 0},
+            {0, 9, 8, 0, 0, 0, 0, 6, 0},
+            {8, 0, 0, 0, 6, 0, 0, 0, 3},
+            {4, 0, 0, 8, 0, 3, 0, 0, 1},
+            {7, 0, 0, 0, 2, 0, 0, 0, 6},
+            {0, 6, 0, 0, 0, 0, 2, 8, 0},
+            {0, 0, 0, 4, 1, 9, 0, 0, 5},
+            {0, 0, 0, 0, 8, 0, 0, 7, 9}
+        }
+    };
+    
+    // 명령줄 인수가 제공된 경우 보드 파싱
+    if (argc > 1) {
+        if (!parse_sudoku_board(argv[1], &board)) {
+            printf("Invalid sudoku board format!\n");
+            return 1;
+        }
+    }
+    
+    printf("Checking sudoku puzzle for multiple solutions:\n");
+    print_sudoku_board(&board);
+    
+    if (has_multiple_solutions(&board)) {
+        printf("The sudoku puzzle has MULTIPLE solutions!\n");
+    } else {
+        printf("The sudoku puzzle has a UNIQUE solution or NO solution.\n");
+    }
+    
+    return 0;
+}
