@@ -45,11 +45,15 @@ const Home = () => {
                         <Link className="text-xl" href="/sudokuSolver">스도쿠 풀이(Sudoku Solver) </Link>
                     </p>
                     <p className="text-tokyo_orange-500 text-2xl">
-                        <Link className="text-xl" href="/sudokuGame">스도쿠 게임(Sudoku Game) </Link>
+                        <Link className="text-xl" href="/sudokuGame">스도쿠 게임(Sudoku Game) -미완성-</Link>
                     </p>
 
                     <p className="text-tokyo_orange-500 text-2xl">
-                        <Link className="text-xl" href="/sudokuBoard">스도쿠 보드(Sudoku Board) </Link>
+                        <Link className="text-xl" href="/sudokuBoard">스도쿠 보드(Sudoku Board) - UI 체크용 - </Link>
+                    </p>
+                    <p className="text-tokyo_orange-500 text-2xl">
+                        스도쿠 V2 
+                        <p className="text-sm">&nbsp;&nbsp;&nbsp;C 코드로 작성한 Algorithm X + Dancing Links Matrix 를 WASM 으로 컴파일하여 사용해보는 테스트 작업 </p>
                     </p>
                 </div>
                 <div className="my-3">
