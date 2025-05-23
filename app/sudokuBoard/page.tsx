@@ -20,7 +20,12 @@ interface GameState {
 }
 
 // localStorage에 저장된 게임 상태를 불러오거나 기본값 반환
-const loadGameState = (initialData: Board): GameState => {
+const loadGameState = (initialData: Board): GameState | null => {
+  // 서버 사이드에서는 null 반환
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  
   const savedState = localStorage.getItem("sudokuGameState");
   if (savedState) {
     try {
@@ -53,7 +58,10 @@ const loadGameState = (initialData: Board): GameState => {
 
 // 게임 상태를 localStorage에 저장
 const saveGameState = (state: GameState) => {
-  localStorage.setItem("sudokuGameState", JSON.stringify(state));
+  // 클라이언트 사이드에서만 실행
+  if (typeof window !== 'undefined') {
+    localStorage.setItem("sudokuGameState", JSON.stringify(state));
+  }
 };
 
 const SudokuBoard: React.FC = () => {
@@ -69,11 +77,31 @@ const SudokuBoard: React.FC = () => {
     null, null, null, null, 8, null, null, 7, 9,
   ];
 
-  const [gameState, setGameState] = useState<GameState>(() =>
-    loadGameState(defaultInitialData)
-  );
+  // 초기 상태 설정 (클라이언트 사이드에서만 로드)
+  const [initialized, setInitialized] = useState(false);
+  const [gameState, setGameState] = useState<GameState>({
+    board: Array(81).fill(null),
+    memoBoard: Array(81).fill(null).map(() => Array(9).fill(false)),
+    revealedBoard: Array(81).fill(false),
+    initialBoard: defaultInitialData,
+    mode: GameMode.PRE_START,
+  });
   const [isMemoMode, setIsMemoMode] = useState<boolean>(false);
   const [selectedCell, setSelectedCell] = useState<number | null>(null);
+
+  useEffect(() => {
+    // 클라이언트 사이드에서만 실행
+    const savedState = loadGameState(defaultInitialData);
+    if (savedState) {
+      setGameState(savedState);
+    }
+    setInitialized(true);
+  }, [defaultInitialData]);
+
+  // 초기화 전에는 로딩 표시
+  if (!initialized) {
+    return <div>로딩 중...</div>;
+  }
 
   const { board, memoBoard, revealedBoard, initialBoard, mode } = gameState;
 
