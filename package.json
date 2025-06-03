@@ -17,6 +17,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.4",
+    "@types/emscripten": "^1.39.6",
     "postcss": "^8.5.3",
     "tailwindcss": "^4.1.4"
   }

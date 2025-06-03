@@ -8,6 +8,73 @@
 }
 
 @layer components {
+    .sudoku-grid {
+        display: grid;
+        grid-template-columns: repeat(9, 1fr);
+        grid-template-rows: repeat(9, 1fr);
+        gap: 1px;
+        border: 1px solid #ccc;
+        padding: 10px;
+        background-color: #f0f0f0;
+    }
+
+    .sudoku-grid input {
+        width: 100%;
+        height: 100%;
+        border: none;
+        padding: 10px;
+        font-size: 18px;
+        text-align: center;
+    }
+
+    .sudoku-grid input:focus {
+        outline: none;
+        background-color: #ccc;
+    }
+
+    .sudoku-grid .row {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .sudoku-grid .row input {
+        margin-right: 10px;
+    }
+
+    .sudoku-grid .row:last-child input {
+        margin-right: 0;
+    }
+
+    .sudoku-grid .col {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .sudoku-grid .col input {
+        margin-bottom: 10px;
+    }
+
+    .sudoku-grid .col:last-child input {
+        margin-bottom: 0;
+    }
+
+    .sudoku-grid .box {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+        background-color: #fff;
+        border: 1px solid #ccc;
+    }
+
+    .sudoku-grid .box input {
+        width: 100%;
+        height: 100%;
+        padding: 10px;
+        font-size: 18px;
+        text-align: center;
+    }
 
     .square {
         @apply border border-solid h-[100px] w-[100px] p-0 mr-[-1px] mt-[-1px] text-center text-2xl float-left border-tokyo_green-500 text-tokyo_pink-500
