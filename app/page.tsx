@@ -38,6 +38,10 @@ const Home = () => {
                     <h1 className="text-tokyo_orange-500 text-3xl">직접 개발하기</h1>
 
                     <p className="text-tokyo_orange-500 text-2xl">
+                        <Link className="text-xl" href="/sal_calculator">급여 계산기(Salary Calculator)</Link>
+                    </p>
+
+                    <p className="text-tokyo_orange-500 text-2xl">
                         <Link className="text-xl" href="/tic-tac-toe">틱-택-토 (Tic-Tac-Toe) Play</Link>
                     </p>
 
