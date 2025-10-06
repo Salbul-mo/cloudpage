@@ -6,14 +6,14 @@
  * - JWT_SECRET이 제거되었습니다.
  */
 interface Env {
-  DB_WORKER: Fetcher;
+  DB: Fetcher;
 }
 
 /**
  * 클라이언트로부터 받는 요청 본문의 타입
  */
 interface LoginPayload {
-  username?: string;
+  userName?: string;
   password?: string;
 }
 
@@ -22,7 +22,7 @@ interface LoginPayload {
  */
 interface UserRecord {
   id: number;
-  username: string;
+  userName: string;
 }
 
 /**
@@ -41,10 +41,10 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   try {
     const { request, env } = context;
     const payload: LoginPayload = await request.json();
-    const { username, password } = payload;
+    const { userName, password } = payload;
 
     // 1. 입력값 유효성 검사
-    if (!username || !password) {
+    if (!userName || !password) {
       const responseBody = JSON.stringify({
         success: false,
         message: '사용자 이름과 비밀번호를 모두 입력해야 합니다.',
@@ -62,7 +62,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       body: JSON.stringify(payload),
     });
 
-    const workerResponse = await env.DB_WORKER.fetch(workerRequest);
+    const workerResponse = await env.DB.fetch(workerRequest);
 
     if (!workerResponse.ok) {
         const errorData: WorkerResponse = await workerResponse.json();
@@ -92,7 +92,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       success: true,
       user: {
         userId: user.id,
-        username: user.username,
+        username: user.userName,
       },
     });
 
