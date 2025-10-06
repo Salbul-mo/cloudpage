@@ -27,7 +27,7 @@ const LoginPage: React.FC = () => {
 
     try {
       const response = await fetch('/api/login', {
-        method: 'POST',
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -65,10 +65,10 @@ const LoginPage: React.FC = () => {
         <h1 style={styles.title}>로그인</h1>
         <form onSubmit={handleSubmit}>
           <div style={styles.inputGroup}>
-            <label htmlFor="username" style={styles.label}>사용자 이름</label>
+            <label htmlFor="userName" style={styles.label}>사용자 이름</label>
             <input
               type="text"
-              id="username"
+              id="userName"
               value={userName}
               onChange={(e) => setUserName(e.target.value)}
               style={styles.input}
