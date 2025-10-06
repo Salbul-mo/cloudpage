@@ -21,8 +21,9 @@ interface LoginPayload {
  * DB_WORKER로부터 받을 것으로 기대되는 사용자 정보 타입
  */
 interface UserRecord {
-  id: number;
-  userName: string;
+  employee_id: string;
+  employee_name: string;
+  company_id: string;
 }
 
 /**
@@ -91,8 +92,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     const successResponseBody = JSON.stringify({
       success: true,
       user: {
-        userId: user.id,
-        username: user.userName,
+        userId: user.employee_id,
+        username: user.employee_name,
       },
     });
 
