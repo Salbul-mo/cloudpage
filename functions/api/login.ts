@@ -106,6 +106,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
      */
 
     // 4. 로그인 성공: JWT 생성 (기존과 동일)
+    /*
     const secret = new TextEncoder().encode(env.JWT_SECRET);
     const userPayloadForJwt = {
         userId: user.id,
@@ -116,6 +117,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       .setIssuedAt()
       .setExpirationTime('2h')
       .sign(secret);
+    */
 
     // 5. 성공 응답 생성 (user 객체 포함) (기존과 동일)
     const successResponseBody = JSON.stringify({
@@ -129,10 +131,10 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     // 6. 응답 헤더에 HttpOnly 쿠키 설정 (기존과 동일)
     const headers = new Headers();
     headers.set('Content-Type', 'application/json');
+    /*
     headers.set('Set-Cookie', `auth_token=${jwt}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=7200`);
-
+    */
     return new Response(successResponseBody, { status: 200, headers });
-
   } catch (error) {
     console.error(error);
     const errorResponseBody = JSON.stringify({
