@@ -20,18 +20,16 @@ interface LoginPayload {
 /**
  * DB_WORKER로부터 받을 것으로 기대되는 사용자 정보 타입
  */
-interface UserRecord {
-  employee_id: string;
-  employee_name: string;
-  company_id: string;
-}
+
 
 /**
  * DB_WORKER로부터 받을 것으로 기대되는 응답 타입
  */
 interface WorkerResponse {
     success: boolean;
-    user?: UserRecord;
+    employee_id?: string;
+    employee_name?: string;
+    company_id?: string;
     message?: string;
 }
 
@@ -78,9 +76,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     }
     
     const workerData: WorkerResponse = await workerResponse.json();
-    const user = workerData.user;
 
-    if (!user) {
+    if (!workerData.employee_id || !workerData.employee_name || !workerData.company_id) {
         const responseBody = JSON.stringify({
             success: false,
             message: '인증에 성공했으나 사용자 정보를 받지 못했습니다.',
@@ -92,8 +89,9 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     const successResponseBody = JSON.stringify({
       success: true,
       user: {
-        userId: user.employee_id,
-        username: user.employee_name,
+        employee_id: workerData.employee_id,
+        employee_name: workerData.employee_name,
+        company_id: workerData.company_id,
       },
     });
 

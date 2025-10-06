@@ -3,8 +3,9 @@ import React, { createContext, useState, useContext, useEffect, ReactNode } from
 
 // 1. 재사용을 위해 User 타입을 명확하게 정의합니다.
 type User = {
-  userId: number;
-  username: string;
+  employee_id: string;
+  employee_name: string;
+  company_id?: string;
 };
 
 // 2. /api/me API의 응답 타입을 정의합니다.
