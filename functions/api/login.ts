@@ -16,7 +16,7 @@ interface Env {
  * 클라이언트로부터 받는 요청 본문의 타입 (변경 없음)
  */
 interface LoginPayload {
-  username?: string;
+  userName?: string;
   password?: string;
 }
 
@@ -25,7 +25,7 @@ interface LoginPayload {
  */
 interface UserRecord {
   id: number;
-  username: string;
+  userName: string;
 }
 
 /**
@@ -44,10 +44,10 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   try {
     const { request, env } = context;
     const payload: LoginPayload = await request.json();
-    const { username, password } = payload;
-
+    const { userName, password } = payload;
+    /*
     // 1. 입력값 유효성 검사는 여기서 계속 수행합니다.
-    if (!username || !password) {
+    if (!userName || !password) {
       const responseBody = JSON.stringify({
         success: false,
         message: '사용자 이름과 비밀번호를 모두 입력해야 합니다.',
@@ -57,7 +57,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         headers: { 'Content-Type': 'application/json' },
       });
     }
-
+    */
     /**
      * 2. D1 직접 조회 로직이 DB_WORKER 호출로 변경되었습니다.
      * - request.clone()을 사용하여 원본 요청의 복사본을 Worker에게 전달합니다.
@@ -67,7 +67,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     const workerRequest = new Request(request.url, {
       method: request.method,
       headers: request.headers,
-      body: JSON.stringify(payload), // ✅ 파싱했던 payload를 다시 문자열로 변환
+      body: request.body, // ✅ 파싱했던 payload를 다시 문자열로 변환
       redirect: request.redirect,
     });
 
@@ -124,7 +124,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       success: true,
       user: {
         userId: user.id,
-        username: user.username,
+        username: user.userName,
       },
     });
 

@@ -12,7 +12,7 @@ interface LoginApiResponse {
 }
 
 const LoginPage: React.FC = () => {
-  const [username, setUsername] = useState<string>('');
+  const [userName, setUserName] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -31,7 +31,7 @@ const LoginPage: React.FC = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ userName, password }),
       });
       
       // 2. API 응답에 명시적인 타입을 지정합니다.
@@ -69,8 +69,8 @@ const LoginPage: React.FC = () => {
             <input
               type="text"
               id="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              value={userName}
+              onChange={(e) => setUserName(e.target.value)}
               style={styles.input}
               disabled={isLoading}
               required
