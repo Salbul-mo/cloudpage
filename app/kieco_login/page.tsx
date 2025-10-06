@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth, User } from '../AuthContext'; // 👈 User 타입을 AuthContext에서 import
+import { useAuth, User } from '../providers/AuthContext'; // 👈 User 타입을 AuthContext에서 import
 
 // 1. /api/login API의 응답 타입을 정의합니다.
 interface LoginApiResponse {
