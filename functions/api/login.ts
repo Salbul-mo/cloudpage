@@ -58,7 +58,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
     // 2. DB_WORKER 호출 로직
     const workerRequest = new Request(request.url, {
-      method: 'GET',
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
