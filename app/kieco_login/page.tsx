@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { useAuth, User } from '../AuthContext'; // 👈 User 타입을 AuthContext에서 import
 
 // 1. /api/login API의 응답 타입을 정의합니다.
@@ -17,7 +17,7 @@ const LoginPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const navigate = useNavigate();
+  const router = useRouter();
   const auth = useAuth();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -45,7 +45,7 @@ const LoginPage: React.FC = () => {
       //    (불필요한 /api/me 호출 제거)
       if (data.user) {
         auth.login(data.user); // 👈 수정됨
-        navigate('/dashboard');
+        router.push('/sudokuBoard');
       } else {
         // user 객체가 없는 경우 에러 처리
         throw new Error('로그인에 성공했으나 사용자 정보를 받지 못했습니다.');
@@ -156,4 +156,4 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
 };
 
-export default LoginPage;;
+export default LoginPage;
