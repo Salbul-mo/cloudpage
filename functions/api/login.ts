@@ -15,10 +15,16 @@ interface Env {
 export const onRequestPost: PagesFunction<Env> = async (context) => {
   try {
     const { request, env } = context;
+    
+    const payload = await request.json();
 
     // 들어온 요청을 복제하여 바인딩된 Worker에게 전달하고,
     // Worker의 응답(JSON 본문, 쿠키 헤더 등 모든 것)을 그대로 받습니다.
-    const workerResponse = await env.AUTH_WORKER.fetch(request);
+    const workerResponse = await env.AUTH_WORKER.fetch(request.url,{
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
     
     // Worker가 생성한 응답을 클라이언트에게 그대로 반환합니다.
     return workerResponse;
