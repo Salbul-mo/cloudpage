@@ -1,12 +1,10 @@
 // functions/api/login.ts
-// 'jose' 라이브러리 import가 더 이상 필요하지 않습니다.
 
-/**
- * 환경 변수 및 바인딩 타입 정의
- * - JWT_SECRET이 제거되었습니다.
- */
+import { SignJWT } from "jose";
+
 interface Env {
   DB: Fetcher;
+  JWT_SECRET: string;
 }
 
 /**
@@ -16,11 +14,6 @@ interface LoginPayload {
   userName?: string;
   password?: string;
 }
-
-/**
- * DB_WORKER로부터 받을 것으로 기대되는 사용자 정보 타입
- */
-
 
 /**
  * DB_WORKER로부터 받을 것으로 기대되는 응답 타입
@@ -84,6 +77,14 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         });
         return new Response(responseBody, { status: 500, headers: { 'Content-Type': 'application/json' } });
     }
+    
+    // JWT 생성
+    const secret = new TextEncoder().encode(env.JWT_SECRET);
+    const jwt = await new SignJWT({ userId: workerData.employee_id, username: workerData.employee_name, companyId: workerData.company_id })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuedAt()
+      .setExpirationTime('2h')
+      .sign(secret);
 
     // 3. 성공 응답 생성 (user 객체 포함)
     const successResponseBody = JSON.stringify({
@@ -98,8 +99,10 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     // 4. 응답 헤더 설정 (쿠키 설정 부분 제거)
     const headers = new Headers();
     headers.set('Content-Type', 'application/json');
+    headers.set('Set-Cookie', `auth_token=${jwt}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=7200`);
 
     return new Response(successResponseBody, { status: 200, headers });
+
 
   } catch (error) {
     console.error(error);

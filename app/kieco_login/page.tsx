@@ -42,7 +42,6 @@ const LoginPage: React.FC = () => {
       }
       
       // 3. 로그인 성공 시, 응답으로 받은 user 객체로 AuthContext 상태를 업데이트합니다.
-      //    (불필요한 /api/me 호출 제거)
       if (data.user) {
         //auth.login(data.user); // 👈 수정됨
         router.push('/sudokuBoard');
