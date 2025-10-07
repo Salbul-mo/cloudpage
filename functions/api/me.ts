@@ -5,7 +5,7 @@
  * - JWT_SECRET 대신, AUTH_WORKER Fetcher만 필요합니다.
  */
 interface Env {
-  AUTH_WORKER: Fetcher;
+  DB: Fetcher;
 }
 
 /**
@@ -17,7 +17,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 
     // 들어온 요청을 그대로 복제하여 바인딩된 Worker에게 전달합니다.
     // 헤더(쿠키 포함), 메소드 등 모든 정보가 그대로 전달됩니다.
-    const workerResponse = await env.AUTH_WORKER.fetch(request);
+    const workerResponse = await env.DB.fetch(request);
     
     // Worker의 응답을 그대로 클라이언트에게 반환합니다.
     return workerResponse;

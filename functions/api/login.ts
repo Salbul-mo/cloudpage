@@ -5,7 +5,7 @@
  * - 이제 AUTH_WORKER Fetcher 하나만 필요합니다.
  */
 interface Env {
-  AUTH_WORKER: Fetcher;
+  DB: Fetcher;
 }
 
 /**
@@ -20,7 +20,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
     // 들어온 요청을 복제하여 바인딩된 Worker에게 전달하고,
     // Worker의 응답(JSON 본문, 쿠키 헤더 등 모든 것)을 그대로 받습니다.
-    const workerResponse = await env.AUTH_WORKER.fetch(request.url,{
+    const workerResponse = await env.DB.fetch(request.url,{
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),

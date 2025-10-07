@@ -5,18 +5,18 @@
  * - D1Database 대신, VENDORS_WORKER Fetcher만 필요합니다.
  */
 interface Env {
-  VENDORS_WORKER: Fetcher;
+  DB: Fetcher;
 }
 
 /**
- * POST 요청을 받아 VENDORS_WORKER로 그대로 전달하는 핸들러
+ * POST 요청을 받아 DB로 그대로 전달하는 핸들러
  */
 export const onRequestPost: PagesFunction<Env> = async (context) => {
   try {
     const { request, env } = context;
 
     // 들어온 요청을 그대로 복제하여 바인딩된 Worker에게 전달합니다.
-    const workerResponse = await env.VENDORS_WORKER.fetch(request);
+    const workerResponse = await env.DB.fetch(request);
     
     // Worker의 응답을 그대로 클라이언트에게 반환합니다.
     return workerResponse;
