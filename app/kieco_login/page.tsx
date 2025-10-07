@@ -6,9 +6,11 @@ import { useAuth, User } from '../providers/AuthContext'; // 👈 User 타입을
 
 // 1. /api/login API의 응답 타입을 정의합니다.
 interface LoginApiResponse {
-  success: boolean;
+  status: number;
   message?: string;
-  user?: User; // 로그인 성공 시 user 객체를 포함하도록 가정
+  employee_id?: number;
+  employee_name?: string;
+  company_id?: number;
 }
 
 const LoginPage: React.FC = () => {
@@ -37,12 +39,12 @@ const LoginPage: React.FC = () => {
       // 2. API 응답에 명시적인 타입을 지정합니다.
       const data: LoginApiResponse = await response.json();
 
-      if (response.status !== 200 || !data.success) {
+      if (response.status !== 200) {
         throw new Error(data.message || '로그인에 실패했습니다.');
       }
       
       // 3. 로그인 성공 시, 응답으로 받은 user 객체로 AuthContext 상태를 업데이트합니다.
-      if (data.user) {
+      if (!data.employee_id) {
         //auth.login(data.user); // 👈 수정됨
         router.push('/sudokuBoard');
       } else {
