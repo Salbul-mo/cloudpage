@@ -37,7 +37,7 @@ const LoginPage: React.FC = () => {
       // 2. API 응답에 명시적인 타입을 지정합니다.
       const data: LoginApiResponse = await response.json();
 
-      if (!response.ok || !data.success) {
+      if (response.status !== 200 || !data.success) {
         throw new Error(data.message || '로그인에 실패했습니다.');
       }
       
