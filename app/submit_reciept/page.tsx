@@ -44,7 +44,7 @@ const ClientCheckPage: React.FC = () => {
       }
 
       // 성공 시, business_registration_number를 쿼리 파라미터로 넘겨주며 다음 페이지로 이동합니다.
-      router.push(`/submit-receipt/details?businessNumber=${data.client.business_registration_number}`);
+      router.push(`/submit_receipt/details?businessNumber=${data.client.business_registration_number}`);
 
     } catch (err: any) {
       setError(err.message);
