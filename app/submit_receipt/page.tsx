@@ -20,10 +20,39 @@ const ClientCheckPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
+  // 사업자등록번호 유효성 검사 함수
+  const validateBusinessNumber = (value: string): string => {
+    // 숫자만 남기고 모든 특수문자, 공백, 띄어쓰기 제거
+    const cleaned = value.replace(/[^0-9]/g, '');
+    return cleaned;
+  };
+
+  // 사업자등록번호 입력 핸들러
+  const handleBusinessNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const cleanedValue = validateBusinessNumber(e.target.value);
+    setBusinessNumber(cleanedValue);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
+
+    // 추가 검증
+    const cleanedBusinessNumber = validateBusinessNumber(businessNumber);
+    const trimmedClientName = clientName.trim();
+
+    if (cleanedBusinessNumber.length !== 10) {
+      setError("사업자등록번호는 10자리 숫자여야 합니다.");
+      setIsLoading(false);
+      return;
+    }
+
+    if (!trimmedClientName) {
+      setError("상호를 입력해주세요.");
+      setIsLoading(false);
+      return;
+    }
 
     try {
       // Clients 테이블을 조회/삽입하는 API 경로로 변경합니다.
@@ -32,8 +61,8 @@ const ClientCheckPage: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         // 테이블 컬럼에 맞게 요청 본문을 수정합니다.
         body: JSON.stringify({
-          businessRegistrationNumber: businessNumber,
-          clientName: clientName
+          businessRegistrationNumber: cleanedBusinessNumber,
+          clientName: trimmedClientName
         }),
       });
 
@@ -63,11 +92,15 @@ const ClientCheckPage: React.FC = () => {
             id="businessNumber"
             type="text"
             value={businessNumber}
-            onChange={(e) => setBusinessNumber(e.target.value)}
+            onChange={handleBusinessNumberChange}
             required
+            maxLength={10}
             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            placeholder="'-' 없이 숫자만 입력"
+            placeholder="숫자만 입력 (자동으로 특수문자 제거)"
           />
+          {businessNumber && businessNumber.length !== 10 && (
+            <p className="mt-1 text-xs text-gray-500">사업자등록번호는 10자리 숫자입니다.</p>
+          )}
         </div>
         <div>
           <label htmlFor="clientName" className="block text-sm font-medium text-gray-700">상호</label>

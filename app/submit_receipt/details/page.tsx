@@ -26,6 +26,44 @@ const ReceiptDetailsForm: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+    // 유효성 검사 함수들
+    const validateAmount = (value: string): string => {
+        // 숫자와 소수점만 허용, 음수 방지
+        const cleaned = value.replace(/[^0-9.]/g, '');
+        // 소수점이 여러 개인 경우 첫 번째만 유지
+        const parts = cleaned.split('.');
+        if (parts.length > 2) {
+            return parts[0] + '.' + parts.slice(1).join('');
+        }
+        return cleaned;
+    };
+
+    const validateItemDescription = (value: string): string => {
+        // 앞뒤 공백 제거, 연속된 공백을 하나로 변경
+        return value.replace(/\s+/g, ' ').trim();
+    };
+
+    const validatePayee = (value: string): string => {
+        // 앞뒤 공백 제거, 연속된 공백을 하나로 변경
+        return value.replace(/\s+/g, ' ').trim();
+    };
+
+    // 입력 핸들러들
+    const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const cleanedValue = validateAmount(e.target.value);
+        setAmount(cleanedValue);
+    };
+
+    const handleItemDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const cleanedValue = validateItemDescription(e.target.value);
+        setItemDescription(cleanedValue);
+    };
+
+    const handlePayeeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const cleanedValue = validatePayee(e.target.value);
+        setPayee(cleanedValue);
+    };
  
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -33,6 +71,29 @@ const ReceiptDetailsForm: React.FC = () => {
             setError("잘못된 접근입니다. 고객사를 먼저 확인해주세요.");
             return;
         }
+
+        // 폼 유효성 검사
+        if (!accountTitle.trim()) {
+            setError("용도 범주를 선택해주세요.");
+            return;
+        }
+
+        if (!itemDescription.trim()) {
+            setError("품목을 입력해주세요.");
+            return;
+        }
+
+        const numericAmount = Number(amount);
+        if (!amount || numericAmount <= 0) {
+            setError("올바른 금액을 입력해주세요.");
+            return;
+        }
+
+        if (numericAmount > 100000000) {
+            setError("금액이 너무 큽니다. (최대 1억원)");
+            return;
+        }
+
         setIsLoading(true);
         setError(null);
         setSuccessMessage(null);
@@ -82,8 +143,14 @@ const ReceiptDetailsForm: React.FC = () => {
             <form onSubmit={handleSubmit} className="space-y-6">
                 {/* 폼 내부는 변경할 필요가 없습니다. */}
                 <div>
-                    <label htmlFor="accountTitle" className="block text-sm font-medium text-gray-700">용도 범주</label>
-                    <select id="accountTitle" value={accountTitle} onChange={(e) => setAccountTitle(e.target.value)} required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                    <label htmlFor="accountTitle" className="block text-sm font-medium text-gray-700">용도 범주 *</label>
+                    <select 
+                        id="accountTitle" 
+                        value={accountTitle} 
+                        onChange={(e) => setAccountTitle(e.target.value)} 
+                        required 
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                    >
                         <option value="">선택해주세요</option>
                         <option value="주유 및 주차">주유 및 주차</option>
                         <option value="식대비">식대비</option>
@@ -91,18 +158,61 @@ const ReceiptDetailsForm: React.FC = () => {
                         <option value="소모품">소모품</option>
                         <option value="기타">기타</option>
                     </select>
+                    {!accountTitle && (
+                        <p className="mt-1 text-xs text-gray-500">용도 범주를 선택해야 합니다.</p>
+                    )}
                 </div>
                 <div>
                     <label htmlFor="itemDescription" className="block text-sm font-medium text-gray-700">품목</label>
-                    <input id="itemDescription" type="text" value={itemDescription} onChange={(e) => setItemDescription(e.target.value)} required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"/>
+                    <input 
+                        id="itemDescription" 
+                        type="text" 
+                        value={itemDescription} 
+                        onChange={handleItemDescriptionChange} 
+                        required 
+                        maxLength={100}
+                        placeholder="구체적인 품목명을 입력해주세요"
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                    />
+                    {itemDescription && itemDescription.length > 80 && (
+                        <p className="mt-1 text-xs text-orange-500">품목명이 길어집니다. ({itemDescription.length}/100자)</p>
+                    )}
                 </div>
                 <div>
                     <label htmlFor="amount" className="block text-sm font-medium text-gray-700">금액</label>
-                    <input id="amount" type="number" value={amount} onChange={(e) => setAmount(e.target.value)} required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"/>
+                    <input 
+                        id="amount" 
+                        type="text" 
+                        inputMode="numeric"
+                        value={amount} 
+                        onChange={handleAmountChange} 
+                        required 
+                        placeholder="숫자만 입력 (예: 50000)"
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                    />
+                    {amount && Number(amount) > 0 && (
+                        <p className="mt-1 text-xs text-gray-500">
+                            입력된 금액: {Number(amount).toLocaleString()}원
+                        </p>
+                    )}
+                    {amount && Number(amount) > 100000000 && (
+                        <p className="mt-1 text-xs text-orange-500">고액입니다. 확인해주세요.</p>
+                    )}
                 </div>
                 <div>
                     <label htmlFor="payee" className="block text-sm font-medium text-gray-700">비고</label>
-                    <input id="payee" type="text" value={payee} onChange={(e) => setPayee(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"/>
+                    <input 
+                        id="payee" 
+                        type="text" 
+                        value={payee} 
+                        onChange={handlePayeeChange} 
+                        maxLength={200}
+                        placeholder="추가 설명이나 비고사항 (선택사항)"
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                    />
+                    {payee && payee.length > 150 && (
+                        <p className="mt-1 text-xs text-orange-500">비고가 길어집니다. ({payee.length}/200자)</p>
+                    )}
                 </div>
                 <div>
                     <label htmlFor="projectPurpose" className="block text-sm font-medium text-gray-700">프로젝트/목적 (선택 사항)</label>
