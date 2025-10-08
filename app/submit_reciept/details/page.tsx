@@ -1,18 +1,22 @@
 "use client";
 
-import { useRouter } from 'next/router';
-import React, { useState, Suspense } from 'react';
+// 1. next/router 대신 next/navigation에서 훅을 가져옵니다.
+import { useRouter, useSearchParams } from 'next/navigation';
+import React, { Suspense, useState } from 'react';
 
-// API 응답 타입을 정의합니다.
+// API 응답 타입 정의는 그대로 둡니다.
 interface SubmitResponse {
     success: boolean;
     message?: string;
 }
 
 const ReceiptDetailsForm: React.FC = () => {
+    // useRouter는 페이지 이동(push)을 위해 사용합니다.
     const router = useRouter();
-    // useSearchParams() 대신 router.query에서 파라미터를 가져옵니다.
-    const { businessNumber } = router.query;
+    
+    // 2. useSearchParams 훅으로 쿼리 파라미터를 가져옵니다.
+    const searchParams = useSearchParams();
+    const businessNumber = searchParams.get('businessNumber');
 
     const [accountTitle, setAccountTitle] = useState('');
     const [amount, setAmount] = useState('');
@@ -21,7 +25,7 @@ const ReceiptDetailsForm: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  
+ 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!businessNumber) {
@@ -36,7 +40,6 @@ const ReceiptDetailsForm: React.FC = () => {
             const response = await fetch('/api/vendors/submit', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                // Expense_Reports 테이블 스키마에 맞게 요청 본문을 수정합니다.
                 body: JSON.stringify({ 
                     clientBrn: businessNumber, 
                     accountTitle, 
@@ -50,9 +53,8 @@ const ReceiptDetailsForm: React.FC = () => {
                 throw new Error(data.message || "영수증 제출에 실패했습니다.");
             }
             setSuccessMessage("영수증이 성공적으로 제출되었습니다!");
-            // 2초 후 대시보드로 이동
             setTimeout(() => {
-                router.push('/dashboard');
+                router.push('/dashboard'); // 이 부분은 동일하게 작동합니다.
             }, 2000);
         } catch (err: any) {
             setError(err.message);
@@ -61,32 +63,35 @@ const ReceiptDetailsForm: React.FC = () => {
         }
     };
 
-    if (router.isReady && !businessNumber) {
+    // 3. Suspense가 로딩을 처리하므로, router.isReady 체크는 필요 없습니다.
+    // businessNumber가 없는 경우만 체크합니다.
+    if (!businessNumber) {
         return (
             <div className="text-center mt-10">
                 <p>잘못된 접근입니다. <a href="/submit-receipt" className="text-indigo-600 hover:underline">고객사 확인 페이지로 돌아가기</a></p>
             </div>
         );
     }
-  
+ 
     return (
         <div className="max-w-lg mx-auto mt-10 p-8 bg-white rounded-lg shadow-xl">
             <h1 className="text-2xl font-bold mb-6 text-center">영수증 제출 (2/2): 상세 정보 입력</h1>
             <p className="text-center text-gray-600 mb-6">고객사 사업자번호: {businessNumber}</p>
             <form onSubmit={handleSubmit} className="space-y-6">
+                {/* 폼 내부는 변경할 필요가 없습니다. */}
                 <div>
                     <label htmlFor="accountTitle" className="block text-sm font-medium text-gray-700">계정 과목 (품목)</label>
                     <input id="accountTitle" type="text" value={accountTitle} onChange={(e) => setAccountTitle(e.target.value)} required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"/>
                 </div>
-                 <div>
+                <div>
                     <label htmlFor="amount" className="block text-sm font-medium text-gray-700">금액</label>
                     <input id="amount" type="number" value={amount} onChange={(e) => setAmount(e.target.value)} required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"/>
                 </div>
-                 <div>
+                <div>
                     <label htmlFor="itemDescription" className="block text-sm font-medium text-gray-700">사용 내역 (상세 설명)</label>
                     <textarea id="itemDescription" value={itemDescription} onChange={(e) => setItemDescription(e.target.value)} required rows={3} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"/>
                 </div>
-                 <div>
+                <div>
                     <label htmlFor="projectPurpose" className="block text-sm font-medium text-gray-700">프로젝트/목적 (선택 사항)</label>
                     <input id="projectPurpose" type="text" value={projectPurpose} onChange={(e) => setProjectPurpose(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"/>
                 </div>
@@ -102,10 +107,11 @@ const ReceiptDetailsForm: React.FC = () => {
     );
 }
 
+// 이 부분은 변경할 필요가 없습니다.
 const ReceiptDetailsPage: React.FC = () => (
     <Suspense fallback={<div className="text-center mt-10">Loading...</div>}>
         <ReceiptDetailsForm />
     </Suspense>
 );
 
-export default ReceiptDetailsPage;
+export default ReceiptDetailsPage;;
