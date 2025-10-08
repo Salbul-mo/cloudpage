@@ -20,6 +20,7 @@ const ReceiptDetailsForm: React.FC = () => {
 
     const [accountTitle, setAccountTitle] = useState('');
     const [amount, setAmount] = useState('');
+    const [payee, setPayee] = useState('');
     const [itemDescription, setItemDescription] = useState('');
     const [projectPurpose, setProjectPurpose] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -42,9 +43,10 @@ const ReceiptDetailsForm: React.FC = () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
                     clientBrn: businessNumber, 
-                    accountTitle, 
-                    amount: Number(amount),
+                    accountTitle,
                     itemDescription,
+                    amount: Number(amount),
+                    payee,
                     projectPurpose 
                 }),
             });
@@ -80,20 +82,40 @@ const ReceiptDetailsForm: React.FC = () => {
             <form onSubmit={handleSubmit} className="space-y-6">
                 {/* 폼 내부는 변경할 필요가 없습니다. */}
                 <div>
-                    <label htmlFor="accountTitle" className="block text-sm font-medium text-gray-700">계정 과목 (품목)</label>
-                    <input id="accountTitle" type="text" value={accountTitle} onChange={(e) => setAccountTitle(e.target.value)} required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"/>
+                    <label htmlFor="accountTitle" className="block text-sm font-medium text-gray-700">용도 범주</label>
+                    <select id="accountTitle" value={accountTitle} onChange={(e) => setAccountTitle(e.target.value)} required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="">선택해주세요</option>
+                        <option value="주유 및 주차">주유 및 주차</option>
+                        <option value="식대비">식대비</option>
+                        <option value="설치 및 제작 부품">설치 및 제작 부품</option>
+                        <option value="소모품">소모품</option>
+                        <option value="기타">기타</option>
+                    </select>
+                </div>
+                <div>
+                    <label htmlFor="itemDescription" className="block text-sm font-medium text-gray-700">품목</label>
+                    <input id="itemDescription" type="text" value={itemDescription} onChange={(e) => setItemDescription(e.target.value)} required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"/>
                 </div>
                 <div>
                     <label htmlFor="amount" className="block text-sm font-medium text-gray-700">금액</label>
                     <input id="amount" type="number" value={amount} onChange={(e) => setAmount(e.target.value)} required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"/>
                 </div>
                 <div>
-                    <label htmlFor="itemDescription" className="block text-sm font-medium text-gray-700">사용 내역 (상세 설명)</label>
-                    <textarea id="itemDescription" value={itemDescription} onChange={(e) => setItemDescription(e.target.value)} required rows={3} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"/>
+                    <label htmlFor="payee" className="block text-sm font-medium text-gray-700">비고</label>
+                    <input id="payee" type="text" value={payee} onChange={(e) => setPayee(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"/>
                 </div>
                 <div>
                     <label htmlFor="projectPurpose" className="block text-sm font-medium text-gray-700">프로젝트/목적 (선택 사항)</label>
-                    <input id="projectPurpose" type="text" value={projectPurpose} onChange={(e) => setProjectPurpose(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"/>
+                    <select id="projectPurpose" value={projectPurpose} onChange={(e) => setProjectPurpose(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="">선택해주세요</option>
+                        <option value="재활용무인회수기">재활용무인회수기</option>
+                        <option value="종량기">종량기</option>
+                        <option value="감량기">감량기</option>
+                        <option value="도서관리시스템">도서관리시스템</option>
+                        <option value="출입통제시스템">출입통제시스템</option>
+                        <option value="물품관리시스템">물품관리시스템</option>
+                        <option value="기타">기타</option>
+                    </select>
                 </div>
                 
                 {error && <p className="text-sm text-red-600 text-center">{error}</p>}
