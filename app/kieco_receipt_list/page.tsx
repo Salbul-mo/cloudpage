@@ -13,6 +13,7 @@ interface ExpenseReport {
   project_purpose?: string;
   employee_id: string;
   employee_name?: string;
+  client_name?: string;
 }
 
 interface ApiResponse {
@@ -73,6 +74,7 @@ const ReceiptListPage: React.FC = () => {
         '보고일자',
         '용도범주',
         '고객사사업자번호',
+        '고객사상호명',
         '품목',
         '금액',
         '비고',
@@ -89,6 +91,7 @@ const ReceiptListPage: React.FC = () => {
           `"${new Date(report.report_date).toLocaleDateString('ko-KR')}"`,
           `"${report.account_title}"`,
           `"${report.client_brn}"`,
+          `"${report.client_name || '알 수 없음'}"`,
           `"${report.item_description}"`,
           `"${report.amount.toLocaleString()}"`,
           `"${report.payee || ''}"`,
@@ -171,6 +174,7 @@ const ReceiptListPage: React.FC = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">품목</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">금액</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">고객사</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">상호명</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">프로젝트</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">비고</th>
               </tr>
@@ -178,13 +182,13 @@ const ReceiptListPage: React.FC = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {isLoading ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={9} className="px-6 py-12 text-center text-gray-500">
                     데이터를 불러오는 중...
                   </td>
                 </tr>
               ) : reports.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={9} className="px-6 py-12 text-center text-gray-500">
                     등록된 영수증이 없습니다.
                   </td>
                 </tr>
@@ -206,8 +210,11 @@ const ReceiptListPage: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
                       {report.amount.toLocaleString()}원
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {report.client_brn}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                      {report.client_name || '알 수 없음'}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-900">
                       {report.project_purpose || '-'}
