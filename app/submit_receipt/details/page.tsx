@@ -52,10 +52,10 @@ const ReceiptDetailsForm: React.FC = () => {
             if (response.status !== 201 || !data.success) {
                 throw new Error(data.message || "영수증 제출에 실패했습니다.");
             }
-            setSuccessMessage("영수증이 성공적으로 제출되었습니다!");
+            setSuccessMessage("영수증이 성공적으로 제출되었습니다! 5초 후 거래처 확인 페이지로 이동합니다.");
             setTimeout(() => {
-                router.push('/dashboard'); // 이 부분은 동일하게 작동합니다.
-            }, 2000);
+                router.push('/submit_receipt'); // 이 부분은 동일하게 작동합니다.
+            }, 5000);
         } catch (err: any) {
             setError(err.message);
         } finally {
