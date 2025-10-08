@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 
 // API 응답의 구조를 Clients 테이블에 맞게 수정합니다.
