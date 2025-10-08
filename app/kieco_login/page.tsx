@@ -46,7 +46,7 @@ const LoginPage: React.FC = () => {
       // 3. 로그인 성공 시, 응답으로 받은 user 객체로 AuthContext 상태를 업데이트합니다.
       if (data.employee_id) {
         //auth.login(data.user); // 👈 수정됨
-        router.push('/sudokuBoard');
+        router.push('/submit_reciept');
       } else {
         // user 객체가 없는 경우 에러 처리
         throw new Error('로그인에 성공했으나 사용자 정보를 받지 못했습니다.');
