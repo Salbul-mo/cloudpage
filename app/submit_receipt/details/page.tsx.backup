@@ -22,6 +22,52 @@ const ReceiptDetailsForm: React.FC = () => {
     const [amount, setAmount] = useState('');
     const [payee, setPayee] = useState('');
     const [itemDescription, setItemDescription] = useState('');
+            setError("품목 설명이 너무 깁니다. (최대 200자)");
+            return;
+        }
+
+        if (payee && payee.length > 100) {
+            setError("비고가 너무 깁니다. (최대 100자)");
+            return;
+        }
+
+        // 의심스러운 패턴 감지
+        const suspiciousPatterns = [
+            /<script/i,
+            /javascript:/i,
+            /on\w+\s*=/i,
+            /drop\s+table/i,
+            /delete\s+from/i,
+            /insert\s+into/i,
+            /update\s+set/i
+        ];
+
+        const allInputs = [accountTitle, itemDescription, payee || '', projectPurpose || ''].join(' ');
+        
+        if (suspiciousPatterns.some(pattern => pattern.test(allInputs))) {
+            setError("유효하지 않은 입력이 감지되었습니다.");
+            return;
+        }} from 'next/navigation';
+import React, { Suspense, useState } from 'react';
+
+// API 응답 타입 정의는 그대로 둡니다.
+interface SubmitResponse {
+    success: boolean;
+    message?: string;
+}
+
+const ReceiptDetailsForm: React.FC = () => {
+    // useRouter는 페이지 이동(push)을 위해 사용합니다.
+    const router = useRouter();
+    
+    // 2. useSearchParams 훅으로 쿼리 파라미터를 가져옵니다.
+    const searchParams = useSearchParams();
+    const businessNumber = searchParams.get('businessNumber');
+
+    const [accountTitle, setAccountTitle] = useState('');
+    const [amount, setAmount] = useState('');
+    const [payee, setPayee] = useState('');
+    const [itemDescription, setItemDescription] = useState('');
     const [projectPurpose, setProjectPurpose] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -39,14 +85,19 @@ const ReceiptDetailsForm: React.FC = () => {
         return cleaned;
     };
 
+    // 입력값 sanitization (XSS 방지)
+    const sanitizeInput = (input: string): string => {
+        return input.replace(/[<>'"&]/g, '').replace(/\s+/g, ' ').trim();
+    };
+
     const validateItemDescription = (value: string): string => {
-        // 앞뒤 공백 제거, 연속된 공백을 하나로 변경
-        return value.replace(/\s+/g, ' ').trim();
+        // 앞뒤 공백 제거, 연속된 공백을 하나로 변경, XSS 방지
+        return sanitizeInput(value);
     };
 
     const validatePayee = (value: string): string => {
-        // 앞뒤 공백 제거, 연속된 공백을 하나로 변경
-        return value.replace(/\s+/g, ' ').trim();
+        // 앞뒤 공백 제거, 연속된 공백을 하나로 변경, XSS 방지
+        return sanitizeInput(value);
     };
 
     // 입력 핸들러들
@@ -89,28 +140,8 @@ const ReceiptDetailsForm: React.FC = () => {
             return;
         }
 
-        if (numericAmount > 10000000) {
-            setError("금액이 너무 큽니다. (최대 1천만원)");
-            return;
-        }
-
-        // 추가 보안 검증
-        if (itemDescription.length > 200) {
-            setError("품목 설명이 너무 깁니다. (최대 200자)");
-            return;
-        }
-
-        if (payee && payee.length > 100) {
-            setError("비고가 너무 깁니다. (최대 100자)");
-            return;
-        }
-
-        // 의심스러운 패턴 감지 (XSS, SQL Injection 방지)
-        const suspiciousPatterns = [/<script/i, /javascript:/i, /on\w+\s*=/i, /drop\s+table/i, /delete\s+from/i, /insert\s+into/i, /update\s+set/i];
-        const allInputs = [accountTitle, itemDescription, payee || '', projectPurpose || ''].join(' ');
-        
-        if (suspiciousPatterns.some(pattern => pattern.test(allInputs))) {
-            setError("유효하지 않은 입력이 감지되었습니다.");
+        if (numericAmount > 100000000) {
+            setError("금액이 너무 큽니다. (최대 1억원)");
             return;
         }
 

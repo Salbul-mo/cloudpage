@@ -16,25 +16,43 @@ interface ExpenseReport {
   client_name?: string;
 }
 
+interface PaginationInfo {
+  page: number;
+  limit: number;
+  totalCount: number;
+  totalPages: number;
+  hasMore: boolean;
+}
+
 interface ApiResponse {
   success: boolean;
   data?: ExpenseReport[];
+  pagination?: PaginationInfo;
   message?: string;
 }
 
 const ReceiptListPage: React.FC = () => {
   const [reports, setReports] = useState<ExpenseReport[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [pagination, setPagination] = useState<PaginationInfo | null>(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
 
-  // 데이터 조회
-  const fetchReports = async () => {
-    setIsLoading(true);
+  // 데이터 조회 (페이지네이션)
+  const fetchReports = async (page: number = 1, append: boolean = false) => {
+    if (append) {
+      setIsLoadingMore(true);
+    } else {
+      setIsLoading(true);
+      setReports([]);
+    }
     setError(null);
     
     try {
-      const response = await fetch('/api/expense-reports', {
+      const response = await fetch(`/api/expense-reports?page=${page}&limit=20`, {
         method: 'GET',
         credentials: 'include', // 쿠키 포함
       });
@@ -45,29 +63,73 @@ const ReceiptListPage: React.FC = () => {
         throw new Error(data.message || '데이터를 불러오는데 실패했습니다.');
       }
 
-      setReports(data.data || []);
+      if (append) {
+        setReports(prev => [...prev, ...(data.data || [])]);
+      } else {
+        setReports(data.data || []);
+      }
+      
+      setPagination(data.pagination || null);
+      setHasMore(data.pagination?.hasMore || false);
+      setCurrentPage(page);
+      
     } catch (err: any) {
       setError(err.message);
     } finally {
       setIsLoading(false);
+      setIsLoadingMore(false);
+    }
+  };
+
+  // 더 많은 데이터 로드
+  const loadMore = () => {
+    if (!isLoadingMore && hasMore) {
+      fetchReports(currentPage + 1, true);
     }
   };
 
   // 페이지 로드 시 데이터 조회
   useEffect(() => {
-    fetchReports();
+    fetchReports(1);
   }, []);
 
-  // CSV 다운로드
-  const downloadCSV = () => {
-    if (reports.length === 0) {
-      alert('다운로드할 데이터가 없습니다.');
-      return;
+  // 무한 스크롤 감지
+  useEffect(() => {
+    const handleScroll = () => {
+      if (
+        window.innerHeight + document.documentElement.scrollTop + 1000 >=
+        document.documentElement.offsetHeight
+      ) {
+        loadMore();
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [currentPage, hasMore, isLoadingMore]);
+
+  // 전체 데이터 조회 (CSV 다운로드용)
+  const fetchAllReports = async (): Promise<ExpenseReport[]> => {
+    const response = await fetch('/api/expense-reports?page=1&limit=10000', {
+      method: 'GET',
+      credentials: 'include',
+    });
+
+    const data: ApiResponse = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || '전체 데이터를 불러오는데 실패했습니다.');
     }
 
+    return data.data || [];
+  };
+
+  // CSV 다운로드
+  const downloadCSV = async () => {
     setIsDownloading(true);
 
     try {
+      const allReports = await fetchAllReports();
       // CSV 헤더
       const headers = [
         '보고서ID',
@@ -86,7 +148,7 @@ const ReceiptListPage: React.FC = () => {
       // CSV 데이터 생성
       const csvRows = [
         headers.join(','), // 헤더 행
-        ...reports.map(report => [
+        ...allReports.map(report => [
           `"${report.report_id}"`,
           `"${new Date(report.report_date).toLocaleDateString('ko-KR')}"`,
           `"${report.account_title}"`,
@@ -134,13 +196,21 @@ const ReceiptListPage: React.FC = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900">영수증 목록</h1>
-        <p className="mt-2 text-gray-600">등록된 모든 영수증 데이터를 조회하고 CSV로 다운로드할 수 있습니다.</p>
+        <div className="mt-2 flex items-center justify-between">
+          <p className="text-gray-600">등록된 모든 영수증 데이터를 조회하고 CSV로 다운로드할 수 있습니다.</p>
+          {pagination && (
+            <div className="text-sm text-gray-500">
+              {reports.length} / {pagination.totalCount}건 표시 중
+              {hasMore && " (스크롤하여 더 보기)"}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* 액션 버튼들 */}
       <div className="mb-6 flex gap-4">
         <button
-          onClick={fetchReports}
+          onClick={() => fetchReports(1)}
           disabled={isLoading}
           className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
@@ -148,10 +218,10 @@ const ReceiptListPage: React.FC = () => {
         </button>
         <button
           onClick={downloadCSV}
-          disabled={isDownloading || reports.length === 0}
+          disabled={isDownloading}
           className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500"
         >
-          {isDownloading ? '다운로드 중...' : `CSV 다운로드 (${reports.length}건)`}
+          {isDownloading ? '다운로드 중...' : `CSV 다운로드 (전체 ${pagination?.totalCount || 0}건)`}
         </button>
       </div>
 
@@ -228,19 +298,43 @@ const ReceiptListPage: React.FC = () => {
             </tbody>
           </table>
         </div>
+        
+        {/* 무한 스크롤 로딩 인디케이터 */}
+        {isLoadingMore && (
+          <div className="py-8 text-center">
+            <div className="inline-flex items-center px-4 py-2 text-sm text-gray-600">
+              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              더 많은 데이터를 불러오는 중...
+            </div>
+          </div>
+        )}
+        
+        {/* 더 이상 데이터가 없을 때 */}
+        {!hasMore && reports.length > 0 && (
+          <div className="py-8 text-center text-gray-500">
+            <p>모든 데이터를 불러왔습니다.</p>
+          </div>
+        )}
       </div>
 
       {/* 통계 정보 */}
-      {reports.length > 0 && (
+      {pagination && (
         <div className="mt-6 bg-gray-50 rounded-lg p-4">
           <h3 className="text-lg font-medium text-gray-900 mb-2">통계</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
-              <p className="text-sm text-gray-600">총 건수</p>
-              <p className="text-2xl font-bold text-blue-600">{reports.length}건</p>
+              <p className="text-sm text-gray-600">전체 건수</p>
+              <p className="text-2xl font-bold text-blue-600">{pagination.totalCount}건</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">총 금액</p>
+              <p className="text-sm text-gray-600">현재 표시</p>
+              <p className="text-2xl font-bold text-indigo-600">{reports.length}건</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">현재 페이지 총액</p>
               <p className="text-2xl font-bold text-green-600">
                 {reports.reduce((sum, report) => sum + report.amount, 0).toLocaleString()}원
               </p>
@@ -248,7 +342,7 @@ const ReceiptListPage: React.FC = () => {
             <div>
               <p className="text-sm text-gray-600">평균 금액</p>
               <p className="text-2xl font-bold text-orange-600">
-                {Math.round(reports.reduce((sum, report) => sum + report.amount, 0) / reports.length).toLocaleString()}원
+                {reports.length > 0 ? Math.round(reports.reduce((sum, report) => sum + report.amount, 0) / reports.length).toLocaleString() : '0'}원
               </p>
             </div>
           </div>

@@ -27,6 +27,21 @@ const ClientCheckPage: React.FC = () => {
     return cleaned;
   };
 
+  // 사업자등록번호 체크섬 검증
+  const isValidBusinessNumber = (brn: string): boolean => {
+    if (brn.length !== 10) return false;
+    
+    const digits = brn.split('').map(Number);
+    const checksum = (digits[0] * 1 + digits[1] * 3 + digits[2] * 7 + digits[3] * 1 + 
+                     digits[4] * 3 + digits[5] * 7 + digits[6] * 1 + digits[7] * 3) % 10;
+    return (10 - checksum) % 10 === digits[8];
+  };
+
+  // 입력값 sanitization
+  const sanitizeInput = (input: string): string => {
+    return input.replace(/[<>'"&]/g, '').trim();
+  };
+
   // 사업자등록번호 입력 핸들러
   const handleBusinessNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const cleanedValue = validateBusinessNumber(e.target.value);
@@ -38,9 +53,9 @@ const ClientCheckPage: React.FC = () => {
     setIsLoading(true);
     setError(null);
 
-    // 추가 검증
+    // 강화된 검증
     const cleanedBusinessNumber = validateBusinessNumber(businessNumber);
-    const trimmedClientName = clientName.trim();
+    const sanitizedClientName = sanitizeInput(clientName.trim());
 
     if (cleanedBusinessNumber.length !== 10) {
       setError("사업자등록번호는 10자리 숫자여야 합니다.");
@@ -48,8 +63,20 @@ const ClientCheckPage: React.FC = () => {
       return;
     }
 
-    if (!trimmedClientName) {
-      setError("상호를 입력해주세요.");
+    if (!isValidBusinessNumber(cleanedBusinessNumber)) {
+      setError("유효하지 않은 사업자등록번호입니다.");
+      setIsLoading(false);
+      return;
+    }
+
+    if (!sanitizedClientName || sanitizedClientName.length < 2) {
+      setError("상호는 2글자 이상이어야 합니다.");
+      setIsLoading(false);
+      return;
+    }
+
+    if (sanitizedClientName.length > 100) {
+      setError("상호는 100글자를 초과할 수 없습니다.");
       setIsLoading(false);
       return;
     }
@@ -62,7 +89,7 @@ const ClientCheckPage: React.FC = () => {
         // 테이블 컬럼에 맞게 요청 본문을 수정합니다.
         body: JSON.stringify({
           businessRegistrationNumber: cleanedBusinessNumber,
-          clientName: trimmedClientName
+          clientName: sanitizedClientName
         }),
       });
 
