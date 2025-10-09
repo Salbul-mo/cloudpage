@@ -37,14 +37,10 @@ const ClientCheckPage: React.FC = () => {
     return cleaned;
   };
 
-  // 사업자등록번호 체크섬 검증
+  // 사업자등록번호 기본 형식 검증 (체크섬은 서버에서 처리)
   const isValidBusinessNumber = (brn: string): boolean => {
-    if (brn.length !== 10) return false;
-    
-    const digits = brn.split('').map(Number);
-    const checksum = (digits[0] * 1 + digits[1] * 3 + digits[2] * 7 + digits[3] * 1 + 
-                     digits[4] * 3 + digits[5] * 7 + digits[6] * 1 + digits[7] * 3) % 10;
-    return (10 - checksum) % 10 === digits[8];
+    // 10자리 숫자인지만 확인 (실제 체크섬 검증은 서버에서 처리)
+    return brn.length === 10 && /^\d{10}$/.test(brn);
   };
 
   // 입력값 sanitization
@@ -74,7 +70,7 @@ const ClientCheckPage: React.FC = () => {
     }
 
     if (!isValidBusinessNumber(cleanedBusinessNumber)) {
-      setError("유효하지 않은 사업자등록번호입니다.");
+      setError("사업자등록번호는 10자리 숫자여야 합니다.");
       setIsLoading(false);
       return;
     }
