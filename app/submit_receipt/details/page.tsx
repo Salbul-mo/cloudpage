@@ -2,7 +2,9 @@
 
 // 1. next/router 대신 next/navigation에서 훅을 가져옵니다.
 import { useRouter, useSearchParams } from 'next/navigation';
-import React, { Suspense, useState } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
+import { useAuth } from '../../../hooks/useAuth';
+import { submitReceipt } from '../../../utils/apiClient';
 
 // API 응답 타입 정의는 그대로 둡니다.
 interface SubmitResponse {
@@ -17,6 +19,16 @@ const ReceiptDetailsForm: React.FC = () => {
     // 2. useSearchParams 훅으로 쿼리 파라미터를 가져옵니다.
     const searchParams = useSearchParams();
     const businessNumber = searchParams.get('businessNumber');
+    
+    // 인증 상태 확인
+    const { isAuthenticated, isLoading: authLoading, user } = useAuth();
+    
+    // 인증 확인
+    useEffect(() => {
+      if (!authLoading && !isAuthenticated) {
+        router.push('/kieco_login');
+      }
+    }, [isAuthenticated, authLoading, router]);
 
     const [accountTitle, setAccountTitle] = useState('');
     const [amount, setAmount] = useState('');
@@ -119,17 +131,14 @@ const ReceiptDetailsForm: React.FC = () => {
         setSuccessMessage(null);
         
         try {
-            const response = await fetch('/api/vendors/submit', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    clientBrn: businessNumber, 
-                    accountTitle,
-                    itemDescription,
-                    amount: Number(amount),
-                    payee,
-                    projectPurpose 
-                }),
+            // CSRF 토큰이 포함된 API 클라이언트 사용
+            const response = await submitReceipt({ 
+                clientBrn: businessNumber, 
+                accountTitle,
+                itemDescription,
+                amount: Number(amount),
+                payee,
+                projectPurpose 
             });
             const data: SubmitResponse = await response.json();
             if (response.status !== 201 || !data.success) {

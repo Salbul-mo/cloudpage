@@ -2,22 +2,29 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth, User } from '../providers/AuthContext'; // 👈 User 타입을 AuthContext에서 import
+// JWT 기반 상태 관리로 변경
 import CookieConsentBanner from '../../components/CookieConsentBanner';
 import { 
   isCookieEnabled, 
   setCookieConsent, 
   getCookieConsent,
-  hasAuthCookie 
+  initCSRFToken 
 } from '../../utils/cookieUtils';
+import { 
+  setUserInfo, 
+  invalidateAuthCache 
+} from '../../utils/authUtils';
 
-// 1. /api/login API의 응답 타입을 정의합니다.
+// 1. /api/login API의 응답 타입을 표준 형식으로 정의합니다.
 interface LoginApiResponse {
-  status: number;
+  success: boolean;
   message?: string;
-  employee_id?: number;
-  employee_name?: string;
-  company_id?: number;
+  data?: {
+    employee_id: number;
+    employee_name: string;
+    company_id: number;
+  };
+  csrf_token?: string;
   cookie_info?: {
     name: string;
     max_age: number;
@@ -36,7 +43,6 @@ const LoginPage: React.FC = () => {
   const [cookieError, setCookieError] = useState<string | null>(null);
 
   const router = useRouter();
-  const auth = useAuth();
 
   useEffect(() => {
     // 페이지 로드 시 쿠키 지원 여부 및 동의 상태 확인
@@ -90,34 +96,42 @@ const LoginPage: React.FC = () => {
     }
 
     try {
+      // CSRF 토큰 생성 및 헤더에 포함
+      const csrfToken = initCSRFToken();
+      
       const response = await fetch('/api/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken,
         },
         body: JSON.stringify({ userName, password }),
         credentials: 'include', // 쿠키 포함하여 요청
       });
       
-      // 2. API 응답에 명시적인 타입을 지정합니다.
+      // 2. API 응답 처리 (표준 포맷)
       const data: LoginApiResponse = await response.json();
 
-      if (response.status !== 200) {
+      if (!response.ok || !data.success) {
         throw new Error(data.message || '로그인에 실패했습니다.');
       }
       
-      // 3. 로그인 성공 후 쿠키 확인
-      if (data.employee_id) {
-        // 짧은 지연 후 auth 쿠키가 설정되었는지 확인
-        setTimeout(() => {
-          if (!hasAuthCookie()) {
-            setError('로그인은 성공했지만 인증 쿠키가 설정되지 않았습니다. 브라우저 설정을 확인해주세요.');
-            return;
-          }
-          router.push('/submit_receipt');
-        }, 100);
+      // 3. 로그인 성공 - 사용자 정보 저장 및 페이지 이동
+      if (data.data?.employee_id && data.data?.employee_name && data.data?.company_id) {
+        // 사용자 정보를 로컬 스토리지에 저장 (JWT 기반 상태 관리)
+        setUserInfo({
+          employee_id: data.data.employee_id,
+          employee_name: data.data.employee_name,
+          company_id: data.data.company_id,
+          exp: Math.floor(Date.now() / 1000) + 7200 // 2시간 후 만료
+        });
+        
+        // 인증 캐시 무효화 (새로운 로그인)
+        invalidateAuthCache();
+        
+        // 즉시 페이지 이동 (불필요한 API 호출 제거)
+        router.push('/submit_receipt');
       } else {
-        // user 객체가 없는 경우 에러 처리
         throw new Error('로그인에 성공했으나 사용자 정보를 받지 못했습니다.');
       }
 

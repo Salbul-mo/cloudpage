@@ -1,7 +1,9 @@
 "use client";
 
 import { useRouter } from 'next/navigation';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../hooks/useAuth';
+import { checkClient } from '../../utils/apiClient';
 
 // API 응답의 구조를 Clients 테이블에 맞게 수정합니다.
 interface ClientResponse {
@@ -19,6 +21,14 @@ const ClientCheckPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const { isAuthenticated, isLoading: authLoading, user } = useAuth();
+
+  // 인증 확인
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push('/kieco_login');
+    }
+  }, [isAuthenticated, authLoading, router]);
 
   // 사업자등록번호 유효성 검사 함수
   const validateBusinessNumber = (value: string): string => {
@@ -82,15 +92,10 @@ const ClientCheckPage: React.FC = () => {
     }
 
     try {
-      // Clients 테이블을 조회/삽입하는 API 경로로 변경합니다.
-      const response = await fetch('/api/vendors/check', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        // 테이블 컬럼에 맞게 요청 본문을 수정합니다.
-        body: JSON.stringify({
-          businessRegistrationNumber: cleanedBusinessNumber,
-          clientName: sanitizedClientName
-        }),
+      // CSRF 토큰이 포함된 API 클라이언트 사용
+      const response = await checkClient({
+        businessRegistrationNumber: cleanedBusinessNumber,
+        clientName: sanitizedClientName
       });
 
       const data: ClientResponse = await response.json();
@@ -108,6 +113,30 @@ const ClientCheckPage: React.FC = () => {
       setIsLoading(false);
     }
   };
+
+  // 인증 로딩 중
+  if (authLoading) {
+    return (
+      <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">인증 확인 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 미인증 상태
+  if (!isAuthenticated) {
+    return (
+      <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
+        <div className="text-center">
+          <p className="text-red-600">로그인이 필요합니다.</p>
+          <p className="text-gray-600 mt-2">잠시 후 로그인 페이지로 이동합니다...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">

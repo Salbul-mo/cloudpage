@@ -3,14 +3,12 @@
 import { useState, useEffect } from 'react';
 import { 
   isCookieEnabled, 
-  getCookieConsent,
-  hasAuthCookie 
+  getCookieConsent 
 } from '../utils/cookieUtils';
 
 export interface CookieStatus {
   isEnabled: boolean;
   hasConsent: boolean | null;
-  hasAuthToken: boolean;
   error: string | null;
 }
 
@@ -18,7 +16,6 @@ export const useCookieStatus = (): CookieStatus => {
   const [status, setStatus] = useState<CookieStatus>({
     isEnabled: false,
     hasConsent: null,
-    hasAuthToken: false,
     error: null,
   });
 
@@ -26,7 +23,6 @@ export const useCookieStatus = (): CookieStatus => {
     const checkStatus = () => {
       const isEnabled = isCookieEnabled();
       const hasConsent = getCookieConsent();
-      const hasAuthToken = hasAuthCookie();
       
       let error: string | null = null;
       
@@ -39,18 +35,25 @@ export const useCookieStatus = (): CookieStatus => {
       setStatus({
         isEnabled,
         hasConsent,
-        hasAuthToken,
         error,
       });
     };
 
-    // 초기 체크
+    // 초기 체크만 수행 (주기적 체크 제거)
     checkStatus();
-
-    // 주기적으로 체크 (쿠키 상태 변경 감지)
-    const interval = setInterval(checkStatus, 1000);
-
-    return () => clearInterval(interval);
+    
+    // 쿠키 설정 변경 시에만 재확인하는 이벤트 리스너 (옵션)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        checkStatus();
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
 
   return status;

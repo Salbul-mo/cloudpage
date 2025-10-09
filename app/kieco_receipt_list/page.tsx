@@ -1,6 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '../../hooks/useAuth';
+import { apiRequest } from '../../utils/apiClient';
+import { getReceipts } from '../../utils/apiClient';
 
 interface ExpenseReport {
   report_id: string;
@@ -40,6 +44,16 @@ const ReceiptListPage: React.FC = () => {
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  
+  const router = useRouter();
+  const { isAuthenticated, isLoading: authLoading, user } = useAuth();
+
+  // 인증 확인
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push('/kieco_login');
+    }
+  }, [isAuthenticated, authLoading, router]);
 
   // 데이터 조회 (페이지네이션)
   const fetchReports = async (page: number = 1, append: boolean = false) => {
@@ -52,14 +66,20 @@ const ReceiptListPage: React.FC = () => {
     setError(null);
     
     try {
-      const response = await fetch(`/api/expense-reports?page=${page}&limit=20`, {
-        method: 'GET',
-        credentials: 'include', // 쿠키 포함
-      });
+      // 인증된 사용자만 접근 가능
+      if (!isAuthenticated) {
+        throw new Error('로그인이 필요합니다.');
+      }
 
+      const response = await apiRequest(`/api/expense-reports?page=${page}&limit=20`, { method: 'GET' });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
       const data: ApiResponse = await response.json();
-
-      if (!response.ok || !data.success) {
+      
+      if (!data.success) {
         throw new Error(data.message || '데이터를 불러오는데 실패했습니다.');
       }
 
@@ -110,14 +130,19 @@ const ReceiptListPage: React.FC = () => {
 
   // 전체 데이터 조회 (CSV 다운로드용)
   const fetchAllReports = async (): Promise<ExpenseReport[]> => {
-    const response = await fetch('/api/expense-reports?page=1&limit=10000', {
-      method: 'GET',
-      credentials: 'include',
-    });
+    if (!isAuthenticated) {
+      throw new Error('로그인이 필요합니다.');
+    }
+
+    const response = await apiRequest('/api/expense-reports?page=1&limit=10000', { method: 'GET' });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
 
     const data: ApiResponse = await response.json();
 
-    if (!response.ok || !data.success) {
+    if (!data.success) {
       throw new Error(data.message || '전체 데이터를 불러오는데 실패했습니다.');
     }
 
@@ -192,19 +217,43 @@ const ReceiptListPage: React.FC = () => {
     return new Date(timestamp).toLocaleString('ko-KR');
   };
 
-  return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">영수증 목록</h1>
-        <div className="mt-2 flex items-center justify-between">
-          <p className="text-gray-600">등록된 모든 영수증 데이터를 조회하고 CSV로 다운로드할 수 있습니다.</p>
-          {pagination && (
-            <div className="text-sm text-gray-500">
-              {reports.length} / {pagination.totalCount}건 표시 중
-              {hasMore && " (스크롤하여 더 보기)"}
-            </div>
-          )}
+  // 인증 확인 중인 경우 로딩 표시
+  if (authLoading) {
+    return (
+      <div className="max-w-6xl mx-auto p-6">
+        <div className="flex justify-center items-center py-20">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <p className="text-gray-600">인증 확인 중...</p>
+          </div>
         </div>
+      </div>
+    );
+  }
+
+  // 인증되지 않은 경우
+  if (!isAuthenticated) {
+    return (
+      <div className="max-w-6xl mx-auto p-6">
+        <div className="text-center py-20">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">로그인이 필요합니다</h2>
+          <p className="text-gray-600 mb-6">영수증 리스트를 보려면 로그인해주세요.</p>
+          <button
+            onClick={() => router.push('/kieco_login')}
+            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+          >
+            로그인하기
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-6xl mx-auto p-6">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">영수증 리스트</h1>
+        <p className="text-gray-600">등록된 모든 영수증을 확인할 수 있습니다.</p>
       </div>
 
       {/* 액션 버튼들 */}
@@ -327,7 +376,7 @@ const ReceiptListPage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <p className="text-sm text-gray-600">전체 건수</p>
-              <p className="text-2xl font-bold text-blue-600">{pagination.totalCount}건</p>
+              <p className="text-2xl font-bold text-blue-600">{pagination?.totalCount || 0}건</p>
             </div>
             <div>
               <p className="text-sm text-gray-600">현재 표시</p>

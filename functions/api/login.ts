@@ -20,9 +20,18 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
     // 들어온 요청을 복제하여 바인딩된 Worker에게 전달하고,
     // Worker의 응답(JSON 본문, 쿠키 헤더 등 모든 것)을 그대로 받습니다.
-    const workerResponse = await env.DB.fetch(request.url,{
+    const headers = new Headers();
+    headers.set('Content-Type', 'application/json');
+    
+    // CSRF 토큰이 있으면 전달
+    const csrfToken = request.headers.get('X-CSRF-Token');
+    if (csrfToken) {
+      headers.set('X-CSRF-Token', csrfToken);
+    }
+    
+    const workerResponse = await env.DB.fetch(request.url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: headers,
       body: JSON.stringify(payload),
     });
     
@@ -31,7 +40,10 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
   } catch (error) {
     console.error("Login gateway error:", error);
-    return new Response(JSON.stringify({ success: false, message: "로그인 게이트웨이에서 오류가 발생했습니다." }), { 
+    return new Response(JSON.stringify({ 
+        success: false, 
+        message: "로그인 게이트웨이에서 오류가 발생했습니다." 
+    }), { 
         status: 500,
         headers: { 'Content-Type': 'application/json' }
     });
