@@ -97,7 +97,7 @@ const ClientCheckPage: React.FC = () => {
       const data: ClientResponse = await response.json();
 
       if (response.status !== 200 || !data.client.business_registration_number) {
-        throw new Error(data.message || "고객사 확인 또는 생성에 실패했습니다.");
+        throw new Error(data.message || "사업자 확인 또는 생성에 실패했습니다.");
       }
 
       // 성공 시, business_registration_number를 쿼리 파라미터로 넘겨주며 다음 페이지로 이동합니다.
@@ -136,7 +136,7 @@ const ClientCheckPage: React.FC = () => {
 
   return (
     <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
-      <h1 className="text-2xl font-bold mb-6 text-center">영수증 제출 (1/2): 고객사 확인</h1>
+      <h1 className="text-2xl font-bold mb-6 text-center">영수증 제출 (1/2): 사업자 확인</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="businessNumber" className="block text-sm font-medium text-gray-700">사업자등록번호</label>

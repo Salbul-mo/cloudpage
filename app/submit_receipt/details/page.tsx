@@ -160,7 +160,7 @@ const ReceiptDetailsForm: React.FC = () => {
     if (!businessNumber) {
         return (
             <div className="text-center mt-10">
-                <p>잘못된 접근입니다. <a href="/submit-receipt" className="text-indigo-600 hover:underline">고객사 확인 페이지로 돌아가기</a></p>
+                <p>잘못된 접근입니다. <a href="/submit-receipt" className="text-indigo-600 hover:underline">사업자 확인 페이지로 돌아가기</a></p>
             </div>
         );
     }
@@ -168,7 +168,7 @@ const ReceiptDetailsForm: React.FC = () => {
     return (
         <div className="max-w-lg mx-auto mt-10 p-8 bg-white rounded-lg shadow-xl">
             <h1 className="text-2xl font-bold mb-6 text-center">영수증 제출 (2/2): 상세 정보 입력</h1>
-            <p className="text-center text-gray-600 mb-6">고객사 사업자번호: {businessNumber}</p>
+            <p className="text-center text-gray-600 mb-6">사업자등록번호: {businessNumber}</p>
             <form onSubmit={handleSubmit} className="space-y-6">
                 {/* 폼 내부는 변경할 필요가 없습니다. */}
                 <div>
