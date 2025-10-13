@@ -66,11 +66,6 @@ const ReceiptListPage: React.FC = () => {
     setError(null);
     
     try {
-      // 인증된 사용자만 접근 가능
-      if (!isAuthenticated) {
-        throw new Error('로그인이 필요합니다.');
-      }
-
       const response = await apiRequest(`/api/expense-reports?page=${page}&limit=20`, { method: 'GET' });
       
       if (!response.ok) {
@@ -108,10 +103,12 @@ const ReceiptListPage: React.FC = () => {
     }
   };
 
-  // 페이지 로드 시 데이터 조회
+  // 인증 완료 후 데이터 조회
   useEffect(() => {
-    fetchReports(1);
-  }, []);
+    if (!authLoading && isAuthenticated) {
+      fetchReports(1);
+    }
+  }, [isAuthenticated, authLoading]);
 
   // 무한 스크롤 감지
   useEffect(() => {
@@ -130,10 +127,6 @@ const ReceiptListPage: React.FC = () => {
 
   // 전체 데이터 조회 (CSV 다운로드용)
   const fetchAllReports = async (): Promise<ExpenseReport[]> => {
-    if (!isAuthenticated) {
-      throw new Error('로그인이 필요합니다.');
-    }
-
     const response = await apiRequest('/api/expense-reports?page=1&limit=10000', { method: 'GET' });
 
     if (!response.ok) {
