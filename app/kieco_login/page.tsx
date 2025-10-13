@@ -11,8 +11,7 @@ import {
   initCSRFToken 
 } from '../../utils/cookieUtils';
 import { 
-  setUserInfo, 
-  invalidateAuthCache 
+  setUserInfo
 } from '../../utils/authUtils';
 
 // 1. /api/login API의 응답 타입을 표준 형식으로 정의합니다.
@@ -126,8 +125,6 @@ const LoginPage: React.FC = () => {
           exp: Math.floor(Date.now() / 1000) + 7200 // 2시간 후 만료
         });
         
-        // 인증 캐시 무효화 (새로운 로그인)
-        invalidateAuthCache();
         
         // 즉시 페이지 이동 (불필요한 API 호출 제거)
         router.push('/submit_receipt');

@@ -67,38 +67,11 @@ export const clearUserInfo = (): void => {
 };
 
 /**
- * 인증 상태 확인 (최소한의 API 호출)
+ * 인증 상태 확인 (항상 API 호출)
  */
-let lastAuthCheck = 0;
-let cachedAuthStatus = false;
-const AUTH_CACHE_DURATION = 5 * 60 * 1000; // 5분 캐시
-
-export const checkAuthStatusCached = async (): Promise<boolean> => {
-  const now = Date.now();
-  
-  // 캐시된 결과가 유효한 경우 사용
-  if (now - lastAuthCheck < AUTH_CACHE_DURATION && cachedAuthStatus) {
-    return cachedAuthStatus;
-  }
-  
-  // 로컬 사용자 정보가 있는지 먼저 확인
-  const userInfo = getUserInfo();
-  if (!userInfo) {
-    cachedAuthStatus = false;
-    lastAuthCheck = now;
-    return false;
-  }
-  
-  // JWT 만료 확인 (실제 토큰은 HttpOnly 쿠키에 있으므로 대략적인 추정)
-  if (userInfo.exp && Date.now() >= userInfo.exp * 1000) {
-    clearUserInfo();
-    cachedAuthStatus = false;
-    lastAuthCheck = now;
-    return false;
-  }
-  
-  // 필요시에만 API 호출
+export const checkAuthStatus = async (): Promise<boolean> => {
   try {
+    // 서버에 직접 인증 상태 확인
     const response = await fetch('/api/me', {
       method: 'GET',
       credentials: 'include',
@@ -106,30 +79,20 @@ export const checkAuthStatusCached = async (): Promise<boolean> => {
     
     if (response.ok) {
       const data: { success?: boolean; user?: any } = await response.json();
-      cachedAuthStatus = data.success && data.user;
+      const isValid = data.success && data.user;
+      
+      if (!isValid) {
+        clearUserInfo();
+      }
+      
+      return isValid;
     } else {
-      cachedAuthStatus = false;     
-    }
-    
-    lastAuthCheck = now;
-    
-    if (!cachedAuthStatus) {
       clearUserInfo();
+      return false;
     }
-    
-    return cachedAuthStatus;
   } catch (error) {
     console.error('Auth status check failed:', error);
-    cachedAuthStatus = false;
-    lastAuthCheck = now;
+    clearUserInfo();
     return false;
   }
-};
-
-/**
- * 캐시 무효화
- */
-export const invalidateAuthCache = (): void => {
-  lastAuthCheck = 0;
-  cachedAuthStatus = false;
 };
