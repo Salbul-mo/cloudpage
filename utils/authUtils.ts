@@ -71,27 +71,40 @@ export const clearUserInfo = (): void => {
  */
 export const checkAuthStatus = async (): Promise<boolean> => {
   try {
+    console.log('🔍 Checking auth status...');
+    console.log('🍪 Current cookies:', document.cookie);
+    
     // 서버에 직접 인증 상태 확인
     const response = await fetch('/api/me', {
       method: 'GET',
       credentials: 'include',
     });
     
+    console.log('📡 API Response status:', response.status);
+    console.log('📡 API Response headers:', Object.fromEntries(response.headers.entries()));
+    
     if (response.ok) {
       const data: { success?: boolean; user?: any } = await response.json();
+      console.log('📦 API Response data:', data);
       const isValid = data.success && data.user;
       
       if (!isValid) {
+        console.log('❌ Auth validation failed');
         clearUserInfo();
+      } else {
+        console.log('✅ Auth validation success');
       }
       
       return isValid;
     } else {
+      console.log('❌ API Response not ok:', response.status, response.statusText);
+      const errorData = await response.text();
+      console.log('📄 Error response:', errorData);
       clearUserInfo();
       return false;
     }
   } catch (error) {
-    console.error('Auth status check failed:', error);
+    console.error('🚨 Auth status check failed:', error);
     clearUserInfo();
     return false;
   }
