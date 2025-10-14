@@ -316,7 +316,7 @@ const ReceiptListPage: React.FC = () => {
                   금액
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  거래처사업자번호
+                  사업자번호
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   상호명
