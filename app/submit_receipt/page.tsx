@@ -1,9 +1,9 @@
 "use client";
 
-import { useRouter } from 'next/navigation';
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../hooks/useAuth';
-import { checkClient } from '../../utils/apiClient';
+import { useRouter } from "next/navigation";
+import React, { useState, useEffect } from "react";
+import { useAuth } from "../../hooks/useAuth";
+import { checkClient } from "../../utils/apiClient";
 
 // API 응답의 구조를 Clients 테이블에 맞게 수정합니다.
 interface ClientResponse {
@@ -16,8 +16,8 @@ interface ClientResponse {
 }
 
 const ClientCheckPage: React.FC = () => {
-  const [businessNumber, setBusinessNumber] = useState('');
-  const [clientName, setClientName] = useState('');
+  const [businessNumber, setBusinessNumber] = useState("");
+  const [clientName, setClientName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -26,14 +26,14 @@ const ClientCheckPage: React.FC = () => {
   // 인증 확인
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
-      router.push('/kieco_login');
+      router.push("/kieco_login");
     }
   }, [isAuthenticated, authLoading, router]);
 
   // 사업자등록번호 유효성 검사 함수
   const validateBusinessNumber = (value: string): string => {
     // 숫자만 남기고 모든 특수문자, 공백, 띄어쓰기 제거
-    const cleaned = value.replace(/[^0-9]/g, '');
+    const cleaned = value.replace(/[^0-9]/g, "");
     return cleaned;
   };
 
@@ -45,11 +45,13 @@ const ClientCheckPage: React.FC = () => {
 
   // 입력값 sanitization
   const sanitizeInput = (input: string): string => {
-    return input.replace(/[<>'"&]/g, '').trim();
+    return input.replace(/[<>'"&]/g, "").trim();
   };
 
   // 사업자등록번호 입력 핸들러
-  const handleBusinessNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleBusinessNumberChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const cleanedValue = validateBusinessNumber(e.target.value);
     setBusinessNumber(cleanedValue);
   };
@@ -91,18 +93,24 @@ const ClientCheckPage: React.FC = () => {
       // CSRF 토큰이 포함된 API 클라이언트 사용
       const response = await checkClient({
         businessRegistrationNumber: cleanedBusinessNumber,
-        clientName: sanitizedClientName
+        clientName: sanitizedClientName,
       });
 
       const data: ClientResponse = await response.json();
 
-      if (response.status !== 200 || !data.client.business_registration_number) {
-        throw new Error(data.message || "사업자 확인 또는 생성에 실패했습니다.");
+      if (
+        response.status !== 200 ||
+        !data.client.business_registration_number
+      ) {
+        throw new Error(
+          data.message || "사업자 확인 또는 생성에 실패했습니다."
+        );
       }
 
       // 성공 시, business_registration_number를 쿼리 파라미터로 넘겨주며 다음 페이지로 이동합니다.
-      router.push(`/submit_receipt/details?businessNumber=${data.client.business_registration_number}`);
-
+      router.push(
+        `/submit_receipt/details?businessNumber=${data.client.business_registration_number}`
+      );
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -128,7 +136,9 @@ const ClientCheckPage: React.FC = () => {
       <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
         <div className="text-center">
           <p className="text-red-600">로그인이 필요합니다.</p>
-          <p className="text-gray-600 mt-2">잠시 후 로그인 페이지로 이동합니다...</p>
+          <p className="text-gray-600 mt-2">
+            잠시 후 로그인 페이지로 이동합니다...
+          </p>
         </div>
       </div>
     );
@@ -136,10 +146,17 @@ const ClientCheckPage: React.FC = () => {
 
   return (
     <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
-      <h1 className="text-2xl font-bold mb-6 text-center">영수증 제출 (1/2): 사업자 확인</h1>
+      <h1 className="text-2xl font-bold mb-6 text-center">
+        영수증 제출 (1/2): 사업자 확인
+      </h1>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="businessNumber" className="block text-sm font-medium text-gray-700">사업자등록번호</label>
+          <label
+            htmlFor="businessNumber"
+            className="block text-sm font-medium text-gray-700"
+          >
+            사업자등록번호
+          </label>
           <input
             id="businessNumber"
             type="text"
@@ -151,11 +168,18 @@ const ClientCheckPage: React.FC = () => {
             placeholder="숫자만 입력 (자동으로 특수문자 제거)"
           />
           {businessNumber && businessNumber.length !== 10 && (
-            <p className="mt-1 text-xs text-gray-500">사업자등록번호는 10자리 숫자입니다.</p>
+            <p className="mt-1 text-xs text-gray-500">
+              사업자등록번호는 10자리 숫자입니다.
+            </p>
           )}
         </div>
         <div>
-          <label htmlFor="clientName" className="block text-sm font-medium text-gray-700">상호</label>
+          <label
+            htmlFor="clientName"
+            className="block text-sm font-medium text-gray-700"
+          >
+            상호
+          </label>
           <input
             id="clientName"
             type="text"
