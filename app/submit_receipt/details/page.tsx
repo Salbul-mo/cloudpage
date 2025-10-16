@@ -195,6 +195,35 @@ const ReceiptDetailsForm: React.FC = () => {
       <p className="text-center text-gray-600 mb-6">
         사업자등록번호: {businessNumber}
       </p>
+
+      {/* 지출 내용 입력 안내 문구 */}
+      <div className="mb-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+        <div className="flex items-start">
+          <div className="flex-shrink-0">
+            <svg
+              className="h-5 w-5 text-orange-400 mt-0.5"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </div>
+          <div className="ml-3">
+            <h3 className="text-sm font-medium text-orange-800 mb-1">
+              지출 내용 정확 입력 안내
+            </h3>
+            <p className="text-sm text-orange-700">
+              영수증에 적힌 <strong>품목과 금액</strong>을 정확하게 입력하고,
+              <strong>지출 목적</strong>을 명확하게 기재해 주세요.
+            </p>
+          </div>
+        </div>
+      </div>
+
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* 폼 내부는 변경할 필요가 없습니다. */}
         <div>
