@@ -218,6 +218,7 @@ const ReceiptDetailsForm: React.FC = () => {
             </h3>
             <p className="text-sm text-orange-700">
               영수증에 적힌 <strong>품목과 금액</strong>을 정확하게 입력하고,
+              <br />
               <strong>지출 목적</strong>을 명확하게 기재해 주세요.
             </p>
           </div>

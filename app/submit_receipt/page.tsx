@@ -172,8 +172,9 @@ const ClientCheckPage: React.FC = () => {
             </h3>
             <p className="text-sm text-blue-700">
               영수증에 적힌 <strong>사업자등록번호</strong>와{" "}
-              <strong>상호</strong>를 정확하게 입력해 주세요. 잘못된 정보 입력
-              시 영수증 처리가 지연될 수 있습니다.
+              <strong>상호</strong>를 정확하게 입력해 주세요.
+              <br />
+              잘못된 정보 입력 시 영수증 처리가 지연될 수 있습니다.
             </p>
           </div>
         </div>
