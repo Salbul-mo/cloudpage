@@ -12,6 +12,42 @@ interface SubmitResponse {
   message?: string;
 }
 
+// 용도 범주별 플레이스홀더 및 설정 매핑
+interface AccountTitleConfig {
+  placeholder: string;
+  description?: string;
+  example: string;
+}
+
+const ACCOUNT_TITLE_CONFIG: Record<string, AccountTitleConfig> = {
+  차량유지비: {
+    placeholder: "예: 휘발유, 경유, 주차비, 세차비, 톨게이트비 등",
+    description: "차량 번호와 지출 목적을 함께 기재해 주세요.",
+    example: "차량번호,목적",
+  },
+  복리후생비: {
+    placeholder: "예: 점심식사, 저녁식사, 커피, 간식, 회식비 등",
+    description:
+      "동석하신 분들을 모두 기재하고, 식사 내용을 간단히 적어주세요.",
+    example: "점심식사, 동석자1, 동석자2",
+  },
+  "소모품비(제품)": {
+    placeholder: "예: 센서, 모터, 케이블, 볼트, 너트, 공구 등",
+    description: "사용처와 구매목록을 구체적으로 기재해 주세요.",
+    example: "OOO 설치 위한 부품 구입",
+  },
+  "소모품비(판)": {
+    placeholder: "예: 문구용품, 청소용품, 포장재, 테이프, 접착제 등",
+    description: "사용처와 구매목록을 구체적으로 기재해 주세요.",
+    example: "문구용품, 청소용품",
+  },
+  기타: {
+    placeholder: "그 외 기타 업무 관련 비용",
+    description: "기타 업무 관련 비용을 구체적으로 기재해 주세요.",
+    example: "택배비, 인쇄비, 교육비 등",
+  },
+};
+
 const ReceiptDetailsForm: React.FC = () => {
   // useRouter는 페이지 이동(push)을 위해 사용합니다.
   const router = useRouter();
@@ -248,10 +284,17 @@ const ReceiptDetailsForm: React.FC = () => {
             <option value="소모품비(판)">기타 소모품</option>
             <option value="기타">기타</option>
           </select>
-          {!accountTitle && (
+          {!accountTitle ? (
             <p className="mt-1 text-xs text-gray-500">
               용도 범주를 선택해야 합니다.
             </p>
+          ) : (
+            accountTitle &&
+            ACCOUNT_TITLE_CONFIG[accountTitle] && (
+              <p className="mt-1 text-xs text-blue-600">
+                📋 {ACCOUNT_TITLE_CONFIG[accountTitle].description}
+              </p>
+            )
           )}
         </div>
         <div>
@@ -268,7 +311,11 @@ const ReceiptDetailsForm: React.FC = () => {
             onChange={handleItemDescriptionChange}
             required
             maxLength={100}
-            placeholder="구체적인 품목명을 입력해주세요"
+            placeholder={
+              accountTitle && ACCOUNT_TITLE_CONFIG[accountTitle]
+                ? ACCOUNT_TITLE_CONFIG[accountTitle].placeholder
+                : "구체적인 품목명을 입력해주세요"
+            }
             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
           />
           {itemDescription && itemDescription.length > 80 && (
@@ -318,7 +365,11 @@ const ReceiptDetailsForm: React.FC = () => {
             value={payee}
             onChange={handlePayeeChange}
             maxLength={200}
-            placeholder="추가 설명이나 비고사항 (선택사항)"
+            placeholder={
+              accountTitle && ACCOUNT_TITLE_CONFIG[accountTitle]
+                ? ACCOUNT_TITLE_CONFIG[accountTitle].example
+                : "구체적인 지출내역을 입력해주세요"
+            }
             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
           />
           {payee && payee.length > 150 && (
