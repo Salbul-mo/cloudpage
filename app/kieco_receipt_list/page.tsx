@@ -18,6 +18,7 @@ interface ExpenseReport {
   employee_id: string;
   employee_name?: string;
   client_name?: string;
+  processed?: number | null; // 0: 미처리, 1: 처리완료, null: 미처리
 }
 
 interface PaginationInfo {
@@ -166,13 +167,15 @@ const ReceiptListPage: React.FC = () => {
         "프로젝트목적",
         "직원ID",
         "직원명",
+        "처리상태",
       ];
 
       // CSV 데이터 생성
       const csvRows = [
         headers.join(","), // 헤더 행
-        ...allReports.map((report) =>
-          [
+        ...allReports.map((report) => {
+          const processedStatus = report.processed === 1 ? "처리완료" : "미처리";
+          return [
             `"${report.report_id}"`,
             `"${new Date(report.report_date).toLocaleDateString("ko-KR")}"`,
             `"${report.account_title}"`,
@@ -184,8 +187,9 @@ const ReceiptListPage: React.FC = () => {
             `"${report.project_purpose || ""}"`,
             `"${report.employee_id}"`,
             `"${report.employee_name || "알 수 없음"}"`,
-          ].join(",")
-        ),
+            `"${processedStatus}"`,
+          ].join(",");
+        }),
       ];
 
       const csvContent = csvRows.join("\n");
@@ -327,13 +331,16 @@ const ReceiptListPage: React.FC = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   비고
                 </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  처리상태
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {isLoading ? (
                 <tr>
                   <td
-                    colSpan={9}
+                    colSpan={10}
                     className="px-6 py-12 text-center text-gray-500"
                   >
                     데이터를 불러오는 중...
@@ -342,7 +349,7 @@ const ReceiptListPage: React.FC = () => {
               ) : reports.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={9}
+                    colSpan={10}
                     className="px-6 py-12 text-center text-gray-500"
                   >
                     등록된 영수증이 없습니다.
@@ -386,6 +393,23 @@ const ReceiptListPage: React.FC = () => {
                       <div className="truncate" title={report.payee || "-"}>
                         {report.payee || "-"}
                       </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm align-middle">
+                      {(() => {
+                        const isProcessed = report.processed === 1;
+                        const statusText = isProcessed ? "처리완료" : "미처리";
+                        const statusClass = isProcessed
+                          ? "bg-green-100 text-green-800"
+                          : "bg-yellow-100 text-yellow-800";
+                        
+                        return (
+                          <span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusClass}`}
+                          >
+                            {statusText}
+                          </span>
+                        );
+                      })()}
                     </td>
                   </tr>
                 ))
