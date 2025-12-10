@@ -93,8 +93,13 @@ const ReceiptListPage: React.FC = () => {
   }, [isAuthenticated, authLoading]);
 
   // 전체 데이터 조회 (CSV 다운로드용)
-  const fetchAllReports = async (processed?: number): Promise<ExpenseReport[]> => {
-    const url = processed !== undefined ? `/api/expense-reports?page=1&limit=10000&processed=${processed}` : "/api/expense-reports?page=1&limit=10000";
+  const fetchAllReports = async (
+    processed?: number
+  ): Promise<ExpenseReport[]> => {
+    const url =
+      processed !== undefined
+        ? `/api/expense-reports?page=1&limit=10000&processed=${processed}`
+        : "/api/expense-reports?page=1&limit=10000";
     const response = await apiRequest(url, { method: "GET" });
 
     if (!response.ok) {
@@ -172,7 +177,9 @@ const ReceiptListPage: React.FC = () => {
     try {
       const allReports = await fetchAllReports();
       const csvContent = generateCSV(allReports);
-      const filename = `expense_reports_all_${new Date().toISOString().split('T')[0]}.csv`;
+      const filename = `expense_reports_all_${
+        new Date().toISOString().split("T")[0]
+      }.csv`;
       downloadCSV(csvContent, filename);
     } catch (err: any) {
       alert(`다운로드 실패: ${err.message}`);
@@ -187,7 +194,9 @@ const ReceiptListPage: React.FC = () => {
     try {
       const unprocessedReports = await fetchAllReports(0);
       const csvContent = generateCSV(unprocessedReports);
-      const filename = `expense_reports_unprocessed_${new Date().toISOString().split('T')[0]}.csv`;
+      const filename = `expense_reports_unprocessed_${
+        new Date().toISOString().split("T")[0]
+      }.csv`;
       downloadCSV(csvContent, filename);
     } catch (err: any) {
       alert(`다운로드 실패: ${err.message}`);
@@ -240,8 +249,8 @@ const ReceiptListPage: React.FC = () => {
   return (
     <div className="max-w-6xl mx-auto p-6">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">영수증 리스트</h1>
-        <p className="text-gray-600">
+        <h1 className="text-3xl font-bold text-gray-200 mb-2">영수증 리스트</h1>
+        <p className="text-gray-300">
           등록된 모든 영수증을 확인할 수 있습니다.
         </p>
       </div>
@@ -367,7 +376,7 @@ const ReceiptListPage: React.FC = () => {
                         const statusClass = isProcessed
                           ? "bg-green-100 text-green-800"
                           : "bg-yellow-100 text-yellow-800";
-                        
+
                         return (
                           <span
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusClass}`}
