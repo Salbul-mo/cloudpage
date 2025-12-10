@@ -39,11 +39,9 @@ interface ApiResponse {
 const ReceiptListPage: React.FC = () => {
   const [reports, setReports] = useState<ExpenseReport[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);
-  const [hasMore, setHasMore] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
 
   const router = useRouter();
@@ -57,18 +55,13 @@ const ReceiptListPage: React.FC = () => {
   }, [isAuthenticated, authLoading, router]);
 
   // 데이터 조회 (페이지네이션)
-  const fetchReports = async (page: number = 1, append: boolean = false) => {
-    if (append) {
-      setIsLoadingMore(true);
-    } else {
-      setIsLoading(true);
-      setReports([]);
-    }
+  const fetchReports = async (page: number = 1) => {
+    setIsLoading(true);
     setError(null);
 
     try {
       const response = await apiRequest(
-        `/api/expense-reports?page=${page}&limit=20`,
+        `/api/expense-reports?page=${page}&limit=50`,
         { method: "GET" }
       );
 
@@ -82,27 +75,13 @@ const ReceiptListPage: React.FC = () => {
         throw new Error(data.message || "데이터를 불러오는데 실패했습니다.");
       }
 
-      if (append) {
-        setReports((prev) => [...prev, ...(data.data || [])]);
-      } else {
-        setReports(data.data || []);
-      }
-
+      setReports(data.data || []);
       setPagination(data.pagination || null);
-      setHasMore(data.pagination?.hasMore || false);
       setCurrentPage(page);
     } catch (err: any) {
       setError(err.message);
     } finally {
       setIsLoading(false);
-      setIsLoadingMore(false);
-    }
-  };
-
-  // 더 많은 데이터 로드
-  const loadMore = () => {
-    if (!isLoadingMore && hasMore) {
-      fetchReports(currentPage + 1, true);
     }
   };
 
@@ -113,27 +92,10 @@ const ReceiptListPage: React.FC = () => {
     }
   }, [isAuthenticated, authLoading]);
 
-  // 무한 스크롤 감지
-  useEffect(() => {
-    const handleScroll = () => {
-      if (
-        window.innerHeight + document.documentElement.scrollTop + 1000 >=
-        document.documentElement.offsetHeight
-      ) {
-        loadMore();
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [currentPage, hasMore, isLoadingMore]);
-
   // 전체 데이터 조회 (CSV 다운로드용)
-  const fetchAllReports = async (): Promise<ExpenseReport[]> => {
-    const response = await apiRequest(
-      "/api/expense-reports?page=1&limit=10000",
-      { method: "GET" }
-    );
+  const fetchAllReports = async (processed?: number): Promise<ExpenseReport[]> => {
+    const url = processed !== undefined ? `/api/expense-reports?page=1&limit=10000&processed=${processed}` : "/api/expense-reports?page=1&limit=10000";
+    const response = await apiRequest(url, { method: "GET" });
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -148,56 +110,91 @@ const ReceiptListPage: React.FC = () => {
     return data.data || [];
   };
 
-  // CSV 다운로드
-  const downloadCSV = async () => {
-    setIsDownloading(true);
+  // CSV 다운로드 헬퍼 함수
+  const generateCSV = (reports: ExpenseReport[]): string => {
+    const headers = [
+      "보고서ID",
+      "보고일자",
+      "용도범주",
+      "고객사사업자번호",
+      "고객사상호명",
+      "품목",
+      "금액",
+      "비고",
+      "프로젝트목적",
+      "직원ID",
+      "직원명",
+      "처리상태",
+    ];
 
+    const csvRows = [
+      headers.join(","),
+      ...reports.map((report) => {
+        const processedStatus = report.processed === 1 ? "처리완료" : "미처리";
+        return [
+          `"${report.report_id}"`,
+          `"${new Date(report.report_date).toLocaleDateString("ko-KR")}"`,
+          `"${report.account_title}"`,
+          `"${report.client_brn}"`,
+          `"${report.client_name || "알 수 없음"}"`,
+          `"${report.item_description}"`,
+          `"${report.amount.toLocaleString()}"`,
+          `"${report.payee || ""}"`,
+          `"${report.project_purpose || ""}"`,
+          `"${report.employee_id}"`,
+          `"${report.employee_name || "알 수 없음"}"`,
+          `"${processedStatus}"`,
+        ].join(",");
+      }),
+    ];
+
+    return csvRows.join("\n");
+  };
+
+  const downloadCSV = (csvContent: string, filename: string) => {
+    const BOM = "\uFEFF";
+    const blob = new Blob([BOM + csvContent], {
+      type: "text/csv;charset=utf-8;",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // 전체 내역 CSV 다운로드
+  const downloadAllCSV = async () => {
+    setIsDownloading(true);
     try {
       const allReports = await fetchAllReports();
-      // CSV 헤더
-      const headers = [
-        "보고서ID",
-        "보고일자",
-        "용도범주",
-        "고객사사업자번호",
-        "고객사상호명",
-        "품목",
-        "금액",
-        "비고",
-        "프로젝트목적",
-        "직원ID",
-        "직원명",
-        "처리상태",
-      ];
+      const csvContent = generateCSV(allReports);
+      const filename = `expense_reports_all_${new Date().toISOString().split('T')[0]}.csv`;
+      downloadCSV(csvContent, filename);
+    } catch (err: any) {
+      alert(`다운로드 실패: ${err.message}`);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
-      // CSV 데이터 생성
-      const csvRows = [
-        headers.join(","), // 헤더 행
-        ...allReports.map((report) => {
-          const processedStatus = report.processed === 1 ? "처리완료" : "미처리";
-          return [
-            `"${report.report_id}"`,
-            `"${new Date(report.report_date).toLocaleDateString("ko-KR")}"`,
-            `"${report.account_title}"`,
-            `"${report.client_brn}"`,
-            `"${report.client_name || "알 수 없음"}"`,
-            `"${report.item_description}"`,
-            `"${report.amount.toLocaleString()}"`,
-            `"${report.payee || ""}"`,
-            `"${report.project_purpose || ""}"`,
-            `"${report.employee_id}"`,
-            `"${report.employee_name || "알 수 없음"}"`,
-            `"${processedStatus}"`,
-          ].join(",");
-        }),
-      ];
-
-      const csvContent = csvRows.join("\n");
-
-      // BOM 추가 (한글 인코딩 문제 해결)
-      const BOM = "\uFEFF";
-      const blob = new Blob([BOM + csvContent], {
-        type: "text/csv;charset=utf-8;",
+  // 미처리 내역 CSV 다운로드
+  const downloadUnprocessedCSV = async () => {
+    setIsDownloading(true);
+    try {
+      const unprocessedReports = await fetchAllReports(0);
+      const csvContent = generateCSV(unprocessedReports);
+      const filename = `expense_reports_unprocessed_${new Date().toISOString().split('T')[0]}.csv`;
+      downloadCSV(csvContent, filename);
+    } catch (err: any) {
+      alert(`다운로드 실패: ${err.message}`);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
       });
 
       // 다운로드 링크 생성
@@ -279,15 +276,6 @@ const ReceiptListPage: React.FC = () => {
           className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           {isLoading ? "조회 중..." : "새로고침"}
-        </button>
-        <button
-          onClick={downloadCSV}
-          disabled={isDownloading}
-          className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500"
-        >
-          {isDownloading
-            ? "다운로드 중..."
-            : `CSV 다운로드 (전체 ${pagination?.totalCount || 0}건)`}
         </button>
       </div>
 
@@ -418,39 +406,78 @@ const ReceiptListPage: React.FC = () => {
           </table>
         </div>
 
-        {/* 무한 스크롤 로딩 인디케이터 */}
-        {isLoadingMore && (
-          <div className="py-8 text-center">
-            <div className="inline-flex items-center px-4 py-2 text-sm text-gray-600">
-              <svg
-                className="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-600"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
+        {/* 페이지네이션 */}
+        {pagination && pagination.totalPages > 1 && (
+          <div className="mt-6 flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => fetchReports(1)}
+                disabled={currentPage === 1 || isLoading}
+                className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                ></circle>
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-              </svg>
-              더 많은 데이터를 불러오는 중...
+                처음
+              </button>
+              <button
+                onClick={() => fetchReports(currentPage - 1)}
+                disabled={currentPage === 1 || isLoading}
+                className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                이전
+              </button>
+              <span className="text-sm text-gray-700">
+                {currentPage} / {pagination.totalPages}
+              </span>
+              <button
+                onClick={() => fetchReports(currentPage + 1)}
+                disabled={currentPage === pagination.totalPages || isLoading}
+                className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                다음
+              </button>
+              <button
+                onClick={() => fetchReports(pagination.totalPages)}
+                disabled={currentPage === pagination.totalPages || isLoading}
+                className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                끝
+              </button>
+            </div>
+            <div className="flex space-x-2">
+              <button
+                onClick={downloadUnprocessedCSV}
+                disabled={isDownloading}
+                className="px-4 py-2 text-sm font-medium text-white bg-yellow-600 border border-transparent rounded-md hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isDownloading ? "다운로드 중..." : "미처리 내역 다운로드"}
+              </button>
+              <button
+                onClick={downloadAllCSV}
+                disabled={isDownloading}
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isDownloading ? "다운로드 중..." : "전체 내역 다운로드"}
+              </button>
             </div>
           </div>
         )}
 
-        {/* 더 이상 데이터가 없을 때 */}
-        {!hasMore && reports.length > 0 && (
-          <div className="py-8 text-center text-gray-500">
-            <p>모든 데이터를 불러왔습니다.</p>
+        {/* 페이지네이션이 없을 때도 다운로드 버튼 표시 */}
+        {(!pagination || pagination.totalPages <= 1) && (
+          <div className="mt-6 flex justify-end space-x-2">
+            <button
+              onClick={downloadUnprocessedCSV}
+              disabled={isDownloading}
+              className="px-4 py-2 text-sm font-medium text-white bg-yellow-600 border border-transparent rounded-md hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isDownloading ? "다운로드 중..." : "미처리 내역 다운로드"}
+            </button>
+            <button
+              onClick={downloadAllCSV}
+              disabled={isDownloading}
+              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isDownloading ? "다운로드 중..." : "전체 내역 다운로드"}
+            </button>
           </div>
         )}
       </div>
