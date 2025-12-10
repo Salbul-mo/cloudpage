@@ -195,28 +195,6 @@ const ReceiptListPage: React.FC = () => {
       setIsDownloading(false);
     }
   };
-      });
-
-      // 다운로드 링크 생성
-      const link = document.createElement("a");
-      const url = URL.createObjectURL(blob);
-      link.setAttribute("href", url);
-      link.setAttribute(
-        "download",
-        `expense_reports_${new Date().toISOString().split("T")[0]}.csv`
-      );
-      link.style.visibility = "hidden";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      alert("CSV 다운로드 중 오류가 발생했습니다.");
-      console.error("CSV download error:", err);
-    } finally {
-      setIsDownloading(false);
-    }
-  };
 
   // 날짜 포맷팅
   const formatDate = (timestamp: number) => {
