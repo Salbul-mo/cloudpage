@@ -90,13 +90,22 @@ const Home = () => {
 
           <p className="text-tokyo_orange-500 text-2xl">
             <Link className="text-xl" href="/sal_calculator_v3">
-              급여 계산기(Salary Calculator) 연차 수당 제외.
+              급여 계산기(Salary Calculator) 연차 수당 제외. 비과세 급여 시급
+              포함
             </Link>
           </p>
 
           <p className="text-tokyo_orange-500 text-2xl">
             <Link className="text-xl" href="/sal_calculator_v3.2">
-              급여 계산기(Salary Calculator) 연차 수당 포함
+              급여 계산기(Salary Calculator) 연차 수당 포함, 비과세 급여 시급
+              제외
+            </Link>
+          </p>
+
+          <p className="text-tokyo_orange-500 text-2xl">
+            <Link className="text-xl" href="/sal_calculator_v3.3">
+              급여 계산기(Salary Calculator) 연차 수당 포함, 비과세 급여 시급
+              포함
             </Link>
           </p>
 
