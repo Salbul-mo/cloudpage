@@ -51,7 +51,7 @@ const SalaryCalculator: React.FC = () => {
   // --- State 관리 ---
   const [netSalary, setNetSalary] = useState<string>("");
   const [totalDeductions, setTotalDeductions] = useState<string>("");
-  const [minHourlyWage, setMinHourlyWage] = useState<number>(10030); // 2025년 기준
+  const [minHourlyWage, setMinHourlyWage] = useState<number>(10320); // 2026년 기준
   const [maxOvertimeHours, setMaxOvertimeHours] = useState<number>(52);
   const [mealAllowanceChecked, setMealAllowanceChecked] =
     useState<boolean>(false);
