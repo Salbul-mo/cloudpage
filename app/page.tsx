@@ -95,6 +95,12 @@ const Home = () => {
           </p>
 
           <p className="text-tokyo_orange-500 text-2xl">
+            <Link className="text-xl" href="/sal_calculator_v3.2">
+              급여 계산기(Salary Calculator) 연차 수당 포함
+            </Link>
+          </p>
+
+          <p className="text-tokyo_orange-500 text-2xl">
             <Link className="text-xl" href="/tic-tac-toe">
               틱-택-토 (Tic-Tac-Toe) Play
             </Link>
